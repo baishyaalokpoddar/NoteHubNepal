@@ -52,6 +52,7 @@ const App = (() => {
     setupFacebookCaptionModal();
     setupGitHubSync();
     setupAdminPanel();
+    setupShareModal();
     startLiveDualClock();
 
     // 7. Load Folders and Notes List
@@ -528,6 +529,67 @@ const App = (() => {
       // Show full install guide modal (with step-by-step for Android, iOS Safari & Chrome)
       showModal('install-modal');
     }
+  }
+
+  // Note & File Share Handling
+  function setupShareModal() {
+    document.getElementById('btn-share-note')?.addEventListener('click', () => {
+      showModal('share-note-modal');
+    });
+
+    // Native Mobile Share API
+    document.getElementById('btn-native-share')?.addEventListener('click', async () => {
+      const title = NoteEditor.getTitle() || 'NoteHub Nepal Note';
+      const contentText = NoteEditor.getPlainText() || '';
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: title,
+            text: `${title}\n\n${contentText}\n\n- Shared via NoteHub Nepal 🇳🇵`,
+            url: window.location.href
+          });
+          closeModal('share-note-modal');
+          showToast('Shared successfully! 📱✨');
+        } catch (e) {
+          console.log('Share dismissed');
+        }
+      } else {
+        await navigator.clipboard.writeText(`${title}\n\n${contentText}\n\n${window.location.href}`);
+        showToast('Note copied to clipboard for sharing! 📋');
+      }
+    });
+
+    // WhatsApp Share
+    document.getElementById('btn-share-whatsapp')?.addEventListener('click', () => {
+      const title = NoteEditor.getTitle() || 'NoteHub Nepal Note';
+      const contentText = (NoteEditor.getPlainText() || '').substring(0, 500);
+      const text = encodeURIComponent(`📝 *${title}*\n\n${contentText}\n\nShared via NoteHub Nepal: ${window.location.href}`);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    });
+
+    // Facebook Share
+    document.getElementById('btn-share-facebook')?.addEventListener('click', () => {
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    });
+
+    // Copy Note Text
+    document.getElementById('btn-share-copy-link')?.addEventListener('click', async () => {
+      const title = NoteEditor.getTitle() || 'NoteHub Nepal Note';
+      const contentText = NoteEditor.getPlainText() || '';
+      await navigator.clipboard.writeText(`${title}\n\n${contentText}`);
+      showToast('Note text copied to clipboard! 📋');
+      closeModal('share-note-modal');
+    });
+
+    // Share Format Buttons (.txt, .md, .doc, .pdf, .mb, .json)
+    document.querySelectorAll('.btn-share-format').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const format = btn.getAttribute('data-format');
+        handleExport(format);
+        closeModal('share-note-modal');
+      });
+    });
   }
 
   // Offline Dictionary Setup

@@ -259,20 +259,63 @@ const NoteEditor = (() => {
       e.target.value = '';
     });
 
-    // Handle Image Paste from Clipboard (PNG, JPG, screenshots)
+    // Video Upload & Insertion Button
+    const videoInput = document.getElementById('note-video-file-input');
+    document.getElementById('btn-insert-video')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      showVideoOptionsModal();
+    });
+
+    document.getElementById('btn-modal-upload-video')?.addEventListener('click', () => {
+      if (typeof closeModal === 'function') closeModal('share-note-modal');
+      videoInput?.click();
+    });
+
+    document.getElementById('btn-modal-embed-youtube')?.addEventListener('click', () => {
+      if (typeof closeModal === 'function') closeModal('share-note-modal');
+      if (typeof showModal === 'function') showModal('video-url-modal');
+    });
+
+    videoInput?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        insertVideoFromFile(file);
+      }
+      e.target.value = '';
+    });
+
+    document.getElementById('btn-submit-youtube-embed')?.addEventListener('click', () => {
+      const urlInput = document.getElementById('youtube-url-input');
+      const url = urlInput ? urlInput.value.trim() : '';
+      if (url) {
+        insertYouTubeEmbed(url);
+        if (urlInput) urlInput.value = '';
+        if (typeof closeModal === 'function') closeModal('video-url-modal');
+      }
+    });
+
+    // Handle Media Paste from Clipboard (Images & Videos)
     editorEl.addEventListener('paste', (e) => {
-      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-      for (const item of items) {
-        if (item.type.indexOf('image') !== -1) {
-          e.preventDefault();
-          const blob = item.getAsFile();
-          if (blob) insertImageFromFile(blob);
-          return;
+      const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+      if (items) {
+        for (const item of items) {
+          if (item.type.indexOf('image') !== -1) {
+            e.preventDefault();
+            const blob = item.getAsFile();
+            if (blob) insertImageFromFile(blob);
+            return;
+          }
+          if (item.type.indexOf('video') !== -1) {
+            e.preventDefault();
+            const blob = item.getAsFile();
+            if (blob) insertVideoFromFile(blob);
+            return;
+          }
         }
       }
     });
 
-    // Handle Image Drag & Drop
+    // Handle Drag & Drop for Images and Videos
     editorEl.addEventListener('dragover', (e) => {
       e.preventDefault();
       editorEl.classList.add('border-indigo-500', 'bg-indigo-50/20');
@@ -289,6 +332,8 @@ const NoteEditor = (() => {
         const file = e.dataTransfer.files[0];
         if (file.type.startsWith('image/')) {
           insertImageFromFile(file);
+        } else if (file.type.startsWith('video/')) {
+          insertVideoFromFile(file);
         }
       }
     });
@@ -300,6 +345,104 @@ const NoteEditor = (() => {
         applyHighlight(color);
       });
     });
+
+    setupMobileKeyboardOptimization();
+  }
+
+  function showVideoOptionsModal() {
+    const choice = prompt("Insert Video:\n1. Upload Video File (.mp4, .webm, .mov)\n2. Embed YouTube / Vimeo Video URL\nType 1 or 2:");
+    if (choice === '1') {
+      document.getElementById('note-video-file-input')?.click();
+    } else if (choice === '2') {
+      const url = prompt("Paste YouTube or Video URL (e.g. https://www.youtube.com/watch?v=...):");
+      if (url) insertYouTubeEmbed(url);
+    }
+  }
+
+  function insertVideoFromFile(file) {
+    if (typeof showToast === 'function') showToast(`Loading video "${file.name}"... 🎥`);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const videoDataUrl = event.target.result;
+      insertVideoHtml(videoDataUrl, file.name);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function insertVideoHtml(src, title = 'Video') {
+    editorEl.focus();
+    const videoHtml = `<div class="note-video-container my-3 text-center" contenteditable="false">
+      <video src="${src}" controls playsinline class="note-video-player max-w-full max-h-[450px] inline-block rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"></video>
+      <div class="text-[11px] text-gray-400 mt-1 italic">${escapeHtml(title)}</div>
+    </div><p><br></p>`;
+    document.execCommand('insertHTML', false, videoHtml);
+    if (onContentChangeCallback) onContentChangeCallback();
+    if (typeof showToast === 'function') showToast('Video inserted! 🎬');
+  }
+
+  function insertYouTubeEmbed(url) {
+    let embedUrl = '';
+    // YouTube
+    const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (ytMatch && ytMatch[1]) {
+      embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}`;
+    } else if (url.includes('vimeo.com/')) {
+      const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+      if (vimeoMatch && vimeoMatch[1]) {
+        embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+      }
+    }
+
+    if (embedUrl) {
+      editorEl.focus();
+      const iframeHtml = `<div class="video-embed-wrapper my-3" contenteditable="false">
+        <iframe src="${embedUrl}" title="Embedded Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div><p><br></p>`;
+      document.execCommand('insertHTML', false, iframeHtml);
+      if (onContentChangeCallback) onContentChangeCallback();
+      if (typeof showToast === 'function') showToast('YouTube video embedded! 🎥✨');
+    } else {
+      insertVideoHtml(url, 'Online Video');
+    }
+  }
+
+  // Mobile Keyboard Optimization
+  function setupMobileKeyboardOptimization() {
+    if (typeof window === 'undefined') return;
+
+    // Detect virtual keyboard resize via visualViewport
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        const isKeyboardOpen = window.visualViewport.height < window.innerHeight - 100;
+        document.body.classList.toggle('keyboard-open', isKeyboardOpen);
+        if (isKeyboardOpen) {
+          scrollCursorIntoView();
+        }
+      });
+    }
+
+    // Auto-scroll on cursor typing and focus
+    editorEl.addEventListener('focus', () => {
+      setTimeout(scrollCursorIntoView, 250);
+    });
+
+    editorEl.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Backspace') {
+        scrollCursorIntoView();
+      }
+    });
+  }
+
+  function scrollCursorIntoView() {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (rect.top > 0 && rect.bottom > 0) {
+      if (rect.bottom > (window.innerHeight - 150) || rect.top < 100) {
+        range.startContainer.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
   }
 
   function insertImageFromFile(file) {
