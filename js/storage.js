@@ -186,10 +186,10 @@ const NoteStorage = (() => {
 
         req.onsuccess = () => {
           let notes = req.result || [];
-          if (!options.includeTrash) {
+          if (options.onlyTrash) {
+            notes = notes.filter(n => !!n.isTrash);
+          } else if (!options.includeTrash) {
             notes = notes.filter(n => !n.isTrash);
-          } else if (options.onlyTrash) {
-            notes = notes.filter(n => n.isTrash);
           }
           if (options.folderId && options.folderId !== 'default' && options.folderId !== 'all') {
             notes = notes.filter(n => n.folderId === options.folderId);
@@ -210,10 +210,10 @@ const NoteStorage = (() => {
 
     // LocalStorage Fallback
     let notes = getLocalStorageNotes();
-    if (!options.includeTrash) {
+    if (options.onlyTrash) {
+      notes = notes.filter(n => !!n.isTrash);
+    } else if (!options.includeTrash) {
       notes = notes.filter(n => !n.isTrash);
-    } else if (options.onlyTrash) {
-      notes = notes.filter(n => n.isTrash);
     }
     if (options.folderId && options.folderId !== 'default' && options.folderId !== 'all') {
       notes = notes.filter(n => n.folderId === options.folderId);

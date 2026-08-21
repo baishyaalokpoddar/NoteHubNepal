@@ -739,6 +739,8 @@ const App = (() => {
 
       const bsDisplay = note.updatedAtBS || note.createdAtBS || '';
 
+      const isTrashCard = !!note.isTrash;
+
       card.innerHTML = `
         <div class="flex items-start justify-between gap-2">
           <h4 class="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate flex-1">${escapeHtml(note.title || 'Untitled Note')}</h4>
@@ -752,11 +754,40 @@ const App = (() => {
           <div class="flex items-center gap-1 truncate font-nepali">
             <span class="text-red-700 dark:text-red-400 font-medium">${bsDisplay}</span>
           </div>
-          <button class="note-menu-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1" data-id="${note.id}" title="Options">⋮</button>
+          ${isTrashCard ? `
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <button class="btn-restore-card px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold hover:bg-emerald-200 text-[10px]" data-id="${note.id}" title="Restore Note">Restore ♻️</button>
+              <button class="btn-del-forever-card px-2 py-0.5 rounded bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 font-semibold hover:bg-red-200 text-[10px]" data-id="${note.id}" title="Delete Permanently">Delete ✕</button>
+            </div>
+          ` : `
+            <button class="note-menu-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1" data-id="${note.id}" title="Options">⋮</button>
+          `}
         </div>
       `;
 
-      card.onclick = (e) => {
+      card.onclick = async (e) => {
+        if (e.target.closest('.btn-restore-card')) {
+          e.stopPropagation();
+          await NoteStorage.restoreNote(note.id);
+          showToast('Note restored from Trash! ♻️');
+          await refreshNotesList();
+          return;
+        }
+        if (e.target.closest('.btn-del-forever-card')) {
+          e.stopPropagation();
+          if (confirm('Permanently delete this note? This action cannot be undone.')) {
+            await NoteStorage.deleteNote(note.id, true);
+            NoteSync.broadcastNoteDelete(note.id, true);
+            if (currentNoteId === note.id) {
+              currentNoteId = null;
+              NoteEditor.setTitle('');
+              NoteEditor.setContent('');
+            }
+            showToast('Note permanently deleted 🗑️');
+            await refreshNotesList();
+          }
+          return;
+        }
         if (e.target.closest('.note-menu-btn')) {
           e.stopPropagation();
           showNoteActionModal(note);
@@ -1213,10 +1244,23 @@ const App = (() => {
 
     // Empty Trash Button
     document.getElementById('btn-empty-trash')?.addEventListener('click', async () => {
-      if (confirm('Are you sure you want to permanently empty all notes in Trash?')) {
+      const trashNotes = await NoteStorage.getAllNotes({ onlyTrash: true });
+      if (trashNotes.length === 0) {
+        showToast('Trash is already empty');
+        return;
+      }
+      if (confirm(`Permanently empty ${trashNotes.length} note(s) in Trash? This cannot be undone.`)) {
+        for (const tn of trashNotes) {
+          NoteSync.broadcastNoteDelete(tn.id, true);
+        }
         await NoteStorage.emptyTrash();
+        if (activeFilter === 'trash') {
+          currentNoteId = null;
+          NoteEditor.setTitle('');
+          NoteEditor.setContent('');
+        }
         await refreshNotesList();
-        showToast('Trash emptied');
+        showToast('Trash permanently emptied 🗑️');
       }
     });
 
