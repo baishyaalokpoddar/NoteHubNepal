@@ -1256,6 +1256,14 @@ const App = (() => {
       showSyncModal();
     });
 
+    document.getElementById('sync-status-badge')?.addEventListener('click', () => {
+      showSyncModal();
+    });
+
+    document.getElementById('mobile-btn-sync')?.addEventListener('click', () => {
+      showSyncModal();
+    });
+
     document.getElementById('btn-save-sync-code')?.addEventListener('click', () => {
       const input = document.getElementById('sync-code-input');
       const pinInput = document.getElementById('sync-pin-input');

@@ -71,46 +71,50 @@
     </div>
 
     <!-- Right Top Header Actions -->
-    <div class="flex items-center gap-1.5 sm:gap-2">
+    <div class="flex items-center gap-1 sm:gap-2">
       
+      <!-- Cloud Sync Room Badge (Always Prominent on Mobile & Desktop) -->
+      <div id="sync-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 cursor-pointer shadow-xs active:scale-95 transition-all" title="Click to open Realtime &amp; Offline Sync">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="truncate font-mono">alok (Live)</span>
+      </div>
+
       <!-- Install App Button (Prominent on Mobile & Desktop) -->
-      <button id="btn-install-app" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1 shadow-sm transition-all active:scale-95" title="Install NoteHub on Mobile / Desktop">
+      <button id="btn-install-app" class="px-2 py-1 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1 shadow-sm transition-all active:scale-95" title="Install NoteHub on Mobile / Desktop">
         <span>📱 Install</span>
       </button>
 
-      <!-- Offline Dictionary Button -->
-      <button id="btn-open-dictionary-modal" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 flex items-center gap-1 transition-colors" title="Offline Nepali-English Dictionary">
+      <!-- Offline Dictionary Button (Desktop & Tablet) -->
+      <button id="btn-open-dictionary-modal" class="hidden md:flex px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 items-center gap-1 transition-colors" title="Offline Nepali-English Dictionary">
         <span>Dictionary</span>
       </button>
 
       <!-- Date Converter AD <-> BS Button -->
-      <button id="btn-open-converter-modal" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 border border-indigo-200 dark:border-indigo-800/60 flex items-center gap-1 transition-colors" title="Convert Date AD <-> BS">
+      <button id="btn-open-converter-modal" class="hidden sm:flex px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 border border-indigo-200 dark:border-indigo-800/60 items-center gap-1 transition-colors" title="Convert Date AD <-> BS">
         <span class="hidden md:inline">AD ⇄ BS</span>
         <span>Converter</span>
       </button>
 
       <!-- Popup Options Button -->
-      <button id="btn-open-popup-settings" class="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Popup &amp; Suggestion Settings">
+      <button id="btn-open-popup-settings" class="hidden sm:block p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Popup &amp; Suggestion Settings">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
       </button>
 
-      <!-- Cloud Sync Room Badge / Trigger -->
-      <div id="sync-status-badge" class="cursor-pointer" title="Click to change Sync Room Code">
-        <!-- Injected by sync.js -->
-      </div>
-      <button id="btn-open-sync-modal" class="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Sync &amp; Bluetooth Settings">
+      <!-- Sync Modal Direct Trigger Button -->
+      <button id="btn-open-sync-modal" class="p-1.5 rounded-lg text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/60" title="Realtime &amp; Offline Sync Settings">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
       </button>
 
       <!-- Nepali Typing Mode Toggle -->
-      <button id="btn-toggle-nepali" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Toggle Nepali Romanized Typing (Ctrl+G)">
-        नेपाली (OFF)
+      <button id="btn-toggle-nepali" class="px-2 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Toggle Nepali Romanized Typing (Ctrl+G)">
+        नेपाली
       </button>
 
       <!-- Theme Picker Dropdown -->
       <div class="relative">
         <button id="btn-open-theme-picker" class="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-1 text-xs font-medium" title="Change Theme">
-          <span class="text-[11px] capitalize" id="current-theme-name">Theme</span>
+          <span class="text-[11px] capitalize hidden sm:inline" id="current-theme-name">Theme</span>
+          <span class="sm:hidden text-xs">🎨</span>
         </button>
         <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-1 z-50 text-xs">
           <button class="theme-select-btn w-full text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between" data-theme="light">
@@ -420,31 +424,32 @@
         </div>
       </footer>
 
-      <!-- Mobile Bottom Action Bar -->
-      <div class="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-2 py-1.5 flex items-center justify-around shadow-lg z-30">
+      <!-- Mobile Bottom Action Bar (iPhone XR & Mobile Viewport) -->
+      <div class="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-2 py-1.5 flex items-center justify-between shadow-lg z-30">
         <button id="mobile-btn-sidebar" class="flex flex-col items-center gap-0.5 text-gray-600 dark:text-gray-300">
-          <span class="text-xs font-bold">Menu</span>
+          <span class="text-xs">📁</span>
           <span class="text-[9px] font-medium">Folders</span>
         </button>
         <button id="mobile-btn-new-note" class="flex flex-col items-center gap-0.5 text-indigo-600 dark:text-indigo-400 font-semibold">
-          <span class="text-xs font-bold">+Note</span>
+          <span class="text-xs">➕</span>
           <span class="text-[9px]">New Note</span>
         </button>
         <button id="mobile-btn-save-note" class="flex flex-col items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
-          <span class="text-xs font-bold">Save</span>
-          <span class="text-[9px]">Save Now</span>
+          <span class="text-xs">💾</span>
+          <span class="text-[9px]">Save</span>
         </button>
-        <button id="mobile-btn-install" class="flex flex-col items-center gap-0.5 text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-700/60">
-          <span class="text-xs font-bold">📱 Install</span>
-          <span class="text-[9px]">App</span>
+        <button id="mobile-btn-sync" class="flex flex-col items-center gap-0.5 text-indigo-600 dark:text-indigo-300 font-bold bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-lg border border-indigo-200 dark:border-indigo-800/60 relative">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse absolute top-1 right-1"></span>
+          <span class="text-xs">🔄</span>
+          <span class="text-[9px] font-bold">Sync</span>
+        </button>
+        <button id="mobile-btn-install" class="flex flex-col items-center gap-0.5 text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-700/60">
+          <span class="text-xs">📱</span>
+          <span class="text-[9px]">Install</span>
         </button>
         <button id="mobile-btn-nepali" class="flex flex-col items-center gap-0.5 text-red-600 dark:text-red-400 font-medium">
-          <span class="text-xs font-bold">नेपाली</span>
-          <span class="text-[9px]">Typing</span>
-        </button>
-        <button id="mobile-btn-converter" class="flex flex-col items-center gap-0.5 text-gray-600 dark:text-gray-300">
-          <span class="text-xs font-bold">AD⇄BS</span>
-          <span class="text-[9px]">Converter</span>
+          <span class="text-xs font-bold">🇳🇵</span>
+          <span class="text-[9px]">नेपाली</span>
         </button>
       </div>
     </main>
