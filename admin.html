@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NoteHub Nepal - Admin Panel (व्यवस्थापक प्यानल)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="h-full bg-slate-900 text-slate-100 flex flex-col items-center justify-center p-4">
+
+  <!-- Admin Login Card -->
+  <div id="admin-auth-container" class="max-w-md w-full bg-slate-800/90 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-700 space-y-6">
+    <div class="text-center space-y-2">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-600 text-white flex items-center justify-center text-2xl font-bold mx-auto shadow-lg shadow-amber-500/20">
+        👑
+      </div>
+      <h1 class="text-2xl font-extrabold text-white tracking-tight">Admin Portal</h1>
+      <p class="text-xs text-slate-400">NoteHub Nepal Management &amp; Room ID Controller</p>
+    </div>
+
+    <form id="admin-login-form" class="space-y-4" onsubmit="return false;">
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Admin User ID:</label>
+        <input type="text" id="admin-user-input" class="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white font-mono text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none" placeholder="e.g. alok" autocomplete="username">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Admin Password:</label>
+        <input type="password" id="admin-pass-input" class="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white font-mono text-sm font-semibold tracking-widest focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none" placeholder="••••" autocomplete="current-password">
+      </div>
+
+      <button type="submit" id="btn-admin-login" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-amber-500/25 active:scale-98 transition-all">
+        Login to Admin Dashboard
+      </button>
+
+      <p id="admin-auth-error" class="text-xs text-rose-400 text-center font-medium hidden">
+        Invalid Admin User ID or Password!
+      </p>
+    </form>
+
+    <div class="pt-4 border-t border-slate-700/60 text-center">
+      <a href="index.html" class="text-xs text-slate-400 hover:text-white transition-colors">
+        &larr; Back to NoteHub Nepal Notepad
+      </a>
+    </div>
+  </div>
+
+  <!-- Admin Main Dashboard (Shown after successful login) -->
+  <div id="admin-dashboard-container" class="max-w-4xl w-full bg-slate-800/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-700 space-y-6 hidden">
+    <div class="flex items-center justify-between pb-4 border-b border-slate-700">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-lg font-bold shadow-md">
+          👑
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-white">Admin Control Center</h2>
+          <p class="text-xs text-slate-400">Authenticated as <span class="text-amber-400 font-mono font-bold">alok</span></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="px-3 py-1.5 text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl transition-colors">
+          Open Notepad 📝
+        </a>
+        <button id="btn-admin-logout" class="px-3 py-1.5 text-xs font-semibold bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/60 rounded-xl transition-colors">
+          Logout 🔒
+        </button>
+      </div>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-700 text-center">
+        <div class="text-2xl font-black text-indigo-400" id="dash-rooms-count">0</div>
+        <div class="text-[11px] text-slate-400 font-medium mt-1">Active Room IDs</div>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-700 text-center">
+        <div class="text-2xl font-black text-emerald-400" id="dash-notes-count">0</div>
+        <div class="text-[11px] text-slate-400 font-medium mt-1">Total Notes</div>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-700 text-center">
+        <div class="text-2xl font-black text-purple-400" id="dash-folders-count">0</div>
+        <div class="text-[11px] text-slate-400 font-medium mt-1">Total Folders</div>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-700 text-center">
+        <div class="text-2xl font-black text-amber-400" id="dash-storage-count">0 KB</div>
+        <div class="text-[11px] text-slate-400 font-medium mt-1">Storage Usage</div>
+      </div>
+    </div>
+
+    <!-- Create Room / ID -->
+    <div class="p-5 rounded-2xl bg-slate-900/70 border border-slate-700 space-y-3">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2">
+        <span>➕ Create New Room Login / User ID:</span>
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Room ID (Code):</label>
+          <input type="text" id="new-room-code-input" placeholder="e.g. office, team, personal" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 font-mono text-xs font-semibold uppercase text-white outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Room PIN (Password):</label>
+          <input type="password" id="new-room-pin-input" value="8264" maxlength="8" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 font-mono text-xs font-bold text-center text-white outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Label / Description:</label>
+          <input type="text" id="new-room-desc-input" placeholder="e.g. Work Notes" class="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white outline-none focus:ring-2 focus:ring-amber-500">
+        </div>
+      </div>
+      <button id="btn-create-room-submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md active:scale-95 transition-all">
+        + Create Room ID
+      </button>
+    </div>
+
+    <!-- Registered IDs Table -->
+    <div class="space-y-3">
+      <h3 class="text-sm font-bold text-white">Registered Room Logins &amp; IDs:</h3>
+      <div class="border border-slate-700 rounded-2xl overflow-hidden shadow-md">
+        <div id="dash-rooms-table" class="divide-y divide-slate-700 bg-slate-900/50">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/nepali-calendar.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const authCard = document.getElementById('admin-auth-container');
+      const dashCard = document.getElementById('admin-dashboard-container');
+      const userInput = document.getElementById('admin-user-input');
+      const passInput = document.getElementById('admin-pass-input');
+      const loginBtn = document.getElementById('btn-admin-login');
+      const errorMsg = document.getElementById('admin-auth-error');
+      const logoutBtn = document.getElementById('btn-admin-logout');
+
+      function handleLogin() {
+        const u = userInput ? userInput.value.trim() : '';
+        const p = passInput ? passInput.value.trim() : '';
+
+        if (NoteAdmin.authenticate(u, p)) {
+          errorMsg?.classList.add('hidden');
+          authCard?.classList.add('hidden');
+          dashCard?.classList.remove('hidden');
+          loadDashboard();
+        } else {
+          errorMsg?.classList.remove('hidden');
+          if (passInput) passInput.value = '';
+        }
+      }
+
+      loginBtn?.addEventListener('click', handleLogin);
+      passInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleLogin();
+      });
+
+      logoutBtn?.addEventListener('click', () => {
+        dashCard?.classList.add('hidden');
+        authCard?.classList.remove('hidden');
+        if (userInput) userInput.value = '';
+        if (passInput) passInput.value = '';
+      });
+
+      async function loadDashboard() {
+        const stats = await NoteAdmin.getSystemStats();
+        const rooms = NoteAdmin.getKnownRooms();
+        const meta = NoteAdmin.getRoomsMetadata();
+
+        document.getElementById('dash-rooms-count').textContent = stats.totalRooms;
+        document.getElementById('dash-notes-count').textContent = stats.totalNotes;
+        document.getElementById('dash-folders-count').textContent = stats.totalFolders;
+        document.getElementById('dash-storage-count').textContent = `${stats.storageKb} KB`;
+
+        const table = document.getElementById('dash-rooms-table');
+        if (!table) return;
+        table.innerHTML = '';
+
+        const activeCode = NoteSync.getSyncCode();
+
+        Object.keys(rooms).forEach(roomCode => {
+          const pin = rooms[roomCode];
+          const m = meta[roomCode] || {};
+          const isActive = roomCode === activeCode;
+          const isDefault = roomCode === 'alok';
+
+          const row = document.createElement('div');
+          row.className = `p-4 flex items-center justify-between gap-3 text-xs ${
+            isActive ? 'bg-indigo-950/40 font-semibold' : ''
+          }`;
+
+          row.innerHTML = `
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="w-9 h-9 rounded-xl ${
+                isActive ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'
+              } flex items-center justify-center font-mono font-bold text-xs flex-shrink-0">
+                ${roomCode.substring(0, 2).toUpperCase()}
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-mono font-bold text-white uppercase text-sm">${roomCode}</span>
+                  ${isActive ? '<span class="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-bold">ACTIVE</span>' : ''}
+                </div>
+                <div class="text-[11px] text-slate-400 truncate mt-0.5">
+                  ${m.description || 'Custom Room'} • PIN: ••••
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <a href="index.html#room=${roomCode}" class="px-3 py-1.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-600 text-white font-semibold text-xs">
+                Open in App
+              </a>
+              ${!isDefault ? `
+                <button class="btn-del px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/60 font-semibold text-xs" data-code="${roomCode}">
+                  Delete 🗑️
+                </button>
+              ` : ''}
+            </div>
+          `;
+
+          row.querySelector('.btn-del')?.addEventListener('click', (e) => {
+            const code = e.currentTarget.getAttribute('data-code');
+            if (confirm(`Are you sure you want to delete Room ID "${code}"?`)) {
+              NoteAdmin.deleteRoom(code);
+              loadDashboard();
+            }
+          });
+
+          table.appendChild(row);
+        });
+      }
+
+      // Create Room Button
+      document.getElementById('btn-create-room-submit')?.addEventListener('click', () => {
+        const code = document.getElementById('new-room-code-input')?.value;
+        const pin = document.getElementById('new-room-pin-input')?.value;
+        const desc = document.getElementById('new-room-desc-input')?.value;
+
+        const res = NoteAdmin.createRoom(code, pin, desc);
+        if (res.success) {
+          document.getElementById('new-room-code-input').value = '';
+          document.getElementById('new-room-desc-input').value = '';
+          loadDashboard();
+        } else {
+          alert(res.error || 'Failed to create room.');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -71,6 +71,22 @@ const App = (() => {
       NoteEditor.setContent('');
     }
 
+    // Check if URL contains #admin or ?admin=1
+    if (window.location.hash === '#admin' || window.location.search.includes('admin')) {
+      setTimeout(() => {
+        showModal('admin-panel-modal');
+        const userInput = document.getElementById('admin-user-auth-input');
+        if (userInput) userInput.focus();
+      }, 250);
+    }
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash === '#admin') {
+        showModal('admin-panel-modal');
+        const userInput = document.getElementById('admin-user-auth-input');
+        if (userInput) userInput.focus();
+      }
+    });
+
     // Register Service Worker for offline PWA
     registerServiceWorker();
   }

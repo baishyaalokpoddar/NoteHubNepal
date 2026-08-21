@@ -7,6 +7,7 @@ const CACHE_NAME = 'notehub-nepal-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
+  '/admin.html',
   '/css/style.css',
   '/js/nepali-calendar.js',
   '/js/nepali-transliterate.js',
