@@ -73,6 +73,11 @@
     <!-- Right Top Header Actions -->
     <div class="flex items-center gap-1.5 sm:gap-2">
       
+      <!-- Install App Button (Prominent on Mobile & Desktop) -->
+      <button id="btn-install-app" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1 shadow-sm transition-all active:scale-95" title="Install NoteHub on Mobile / Desktop">
+        <span>📱 Install</span>
+      </button>
+
       <!-- Offline Dictionary Button -->
       <button id="btn-open-dictionary-modal" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 flex items-center gap-1 transition-colors" title="Offline Nepali-English Dictionary">
         <span>Dictionary</span>
@@ -168,6 +173,20 @@
         <div id="folders-list" class="flex gap-1 overflow-x-auto pb-1 text-xs">
           <!-- Populated dynamically by app.js -->
         </div>
+      </div>
+
+      <!-- Install App Banner in Sidebar Drawer (For Mobile & Desktop Users) -->
+      <div class="m-3 p-3 bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl shadow-md flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center text-base">📱</div>
+          <div>
+            <div class="font-bold text-xs">Install NoteHub App</div>
+            <div class="text-[10px] text-emerald-100">Works 100% Offline</div>
+          </div>
+        </div>
+        <button id="btn-sidebar-install-app" class="px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-800 font-bold text-xs rounded-xl shadow-xs active:scale-95 transition-all flex-shrink-0">
+          Install
+        </button>
       </div>
 
       <!-- Filters (All, Pinned, Trash) -->
@@ -402,29 +421,54 @@
       </footer>
 
       <!-- Mobile Bottom Action Bar -->
-      <div class="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-3 py-2 flex items-center justify-between shadow-lg z-30">
+      <div class="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-2 py-1.5 flex items-center justify-around shadow-lg z-30">
         <button id="mobile-btn-sidebar" class="flex flex-col items-center gap-0.5 text-gray-600 dark:text-gray-300">
           <span class="text-xs font-bold">Menu</span>
-          <span class="text-[10px] font-medium">Folders</span>
+          <span class="text-[9px] font-medium">Folders</span>
         </button>
         <button id="mobile-btn-new-note" class="flex flex-col items-center gap-0.5 text-indigo-600 dark:text-indigo-400 font-semibold">
           <span class="text-xs font-bold">+Note</span>
-          <span class="text-[10px]">New Note</span>
+          <span class="text-[9px]">New Note</span>
         </button>
         <button id="mobile-btn-save-note" class="flex flex-col items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
           <span class="text-xs font-bold">Save</span>
-          <span class="text-[10px]">Save Now</span>
+          <span class="text-[9px]">Save Now</span>
+        </button>
+        <button id="mobile-btn-install" class="flex flex-col items-center gap-0.5 text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-700/60">
+          <span class="text-xs font-bold">📱 Install</span>
+          <span class="text-[9px]">App</span>
         </button>
         <button id="mobile-btn-nepali" class="flex flex-col items-center gap-0.5 text-red-600 dark:text-red-400 font-medium">
           <span class="text-xs font-bold">नेपाली</span>
-          <span class="text-[10px]">Typing</span>
+          <span class="text-[9px]">Typing</span>
         </button>
         <button id="mobile-btn-converter" class="flex flex-col items-center gap-0.5 text-gray-600 dark:text-gray-300">
           <span class="text-xs font-bold">AD⇄BS</span>
-          <span class="text-[10px]">Converter</span>
+          <span class="text-[9px]">Converter</span>
         </button>
       </div>
     </main>
+  </div>
+
+  <!-- Floating Mobile Install Banner (Auto-shows on mobile browser) -->
+  <div id="mobile-install-banner" class="fixed top-14 left-2 right-2 md:hidden z-40 bg-gradient-to-r from-emerald-700 via-teal-800 to-indigo-900 text-white p-3 rounded-2xl shadow-2xl border border-emerald-400/40 flex items-center justify-between gap-2 hidden animate-fade-in">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-white text-emerald-700 flex items-center justify-center font-bold text-lg shadow-sm">
+        📱
+      </div>
+      <div>
+        <div class="font-bold text-xs leading-tight">Install NoteHub Nepal App</div>
+        <div class="text-[11px] text-emerald-100">Works 100% offline with fast speed</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button id="btn-banner-install" class="px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-800 font-bold text-xs rounded-xl shadow-sm active:scale-95 transition-all">
+        Install
+      </button>
+      <button id="btn-dismiss-install-banner" class="p-1 text-white/70 hover:text-white text-sm" title="Dismiss">
+        ✕
+      </button>
+    </div>
   </div>
 
   <!-- Floating Selection Tooltip ("Add to Note") -->

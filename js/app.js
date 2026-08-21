@@ -440,20 +440,52 @@ const App = (() => {
     });
   }
 
-  // PWA Install Handling
+  // PWA Install Handling for Mobile and Desktop
   function setupPWAInstall() {
+    const installBanner = document.getElementById('mobile-install-banner');
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredInstallPrompt = e;
-      console.log('beforeinstallprompt fired');
+      console.log('beforeinstallprompt fired - ready to install');
+
+      // If on mobile browser and not standalone, show floating install banner
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const isDismissed = sessionStorage.getItem('nhub_banner_dismissed');
+      if (!isStandalone && !isDismissed && installBanner) {
+        installBanner.classList.remove('hidden');
+      }
     });
 
-    document.getElementById('btn-install-app')?.addEventListener('click', () => {
-      triggerPWAInstall();
+    // Auto-check on mobile after 2.5s
+    setTimeout(() => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const isDismissed = sessionStorage.getItem('nhub_banner_dismissed');
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile && !isStandalone && !isDismissed && installBanner) {
+        installBanner.classList.remove('hidden');
+      }
+    }, 2500);
+
+    // Dismiss floating banner
+    document.getElementById('btn-dismiss-install-banner')?.addEventListener('click', () => {
+      if (installBanner) installBanner.classList.add('hidden');
+      sessionStorage.setItem('nhub_banner_dismissed', '1');
     });
 
-    document.getElementById('btn-trigger-pwa-install')?.addEventListener('click', () => {
-      triggerPWAInstall();
+    // All Install Button Triggers (Header, Sidebar, Mobile Bottom Bar, Floating Banner, Modal)
+    const installButtons = [
+      'btn-install-app',
+      'btn-sidebar-install-app',
+      'mobile-btn-install',
+      'btn-banner-install',
+      'btn-trigger-pwa-install'
+    ];
+
+    installButtons.forEach(btnId => {
+      document.getElementById(btnId)?.addEventListener('click', () => {
+        triggerPWAInstall();
+      });
     });
   }
 
@@ -462,12 +494,15 @@ const App = (() => {
       deferredInstallPrompt.prompt();
       deferredInstallPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
-          showToast('NoteHub installed successfully! 🚀');
+          showToast('NoteHub installed successfully! 📱🚀');
+          const installBanner = document.getElementById('mobile-install-banner');
+          if (installBanner) installBanner.classList.add('hidden');
         }
         deferredInstallPrompt = null;
         closeModal('install-modal');
       });
     } else {
+      // Show full install guide modal (with step-by-step for Android, iOS Safari & Chrome)
       showModal('install-modal');
     }
   }
@@ -1563,7 +1598,10 @@ const App = (() => {
     if (!badge) return;
 
     if (status.state === 'connected') {
-      badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> <span class="truncate">Room: <b>${status.syncCode}</b> (${status.peerCount} peer)</span>`;
+      const peerText = status.peerCount > 0 
+        ? `${status.peerCount} Device${status.peerCount > 1 ? 's' : ''}` 
+        : 'Live';
+      badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> <span class="truncate">Room: <b>${status.syncCode}</b> (${peerText})</span>`;
       badge.className = 'flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 cursor-pointer';
     } else if (status.state === 'syncing') {
       badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> <span>Syncing...</span>`;
