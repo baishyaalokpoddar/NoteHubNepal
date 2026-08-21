@@ -3,35 +3,34 @@
  * Provides robust offline caching for all assets, fonts, styles, and scripts.
  */
 
-const CACHE_NAME = 'notehub-nepal-v6';
+const CACHE_NAME = 'notehub-nepal-v7';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/admin.html',
-  '/css/style.css',
-  '/js/nepali-calendar.js',
-  '/js/nepali-transliterate.js',
-  '/js/dictionary.js',
-  '/js/caption-formatter.js',
-  '/js/github-sync.js',
-  '/js/storage.js',
-  '/js/reminder.js',
-  '/js/sync.js',
-  '/js/admin.js',
-  '/js/editor.js',
-  '/js/app.js',
-  '/manifest.json',
-  '/icons/icon.svg',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  'https://cdn.tailwindcss.com',
-  'https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js'
+  './',
+  './index.html',
+  './admin.html',
+  './css/style.css',
+  './js/nepali-calendar.js',
+  './js/nepali-transliterate.js',
+  './js/dictionary.js',
+  './js/caption-formatter.js',
+  './js/github-sync.js',
+  './js/storage.js',
+  './js/reminder.js',
+  './js/sync.js',
+  './js/admin.js',
+  './js/editor.js',
+  './js/app.js',
+  './manifest.json',
+  './icons/icon.svg',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  'https://cdn.tailwindcss.com'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Pre-caching offline assets for NoteHub Nepal');
+      console.log('Pre-caching offline assets for NoteHub Nepal (v7)');
       return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { mode: 'no-cors' })));
     }).then(() => self.skipWaiting())
   );
@@ -78,7 +77,7 @@ self.addEventListener('fetch', (event) => {
       }).catch(() => {
         // Offline fallback for navigation
         if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
-          return caches.match('/index.html');
+          return caches.match('./index.html') || caches.match('/index.html');
         }
       });
     })
