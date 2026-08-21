@@ -3,7 +3,7 @@
  * Provides robust offline caching for all assets, fonts, styles, and scripts.
  */
 
-const CACHE_NAME = 'notehub-nepal-v5';
+const CACHE_NAME = 'notehub-nepal-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -16,6 +16,7 @@ const STATIC_ASSETS = [
   '/js/storage.js',
   '/js/reminder.js',
   '/js/sync.js',
+  '/js/admin.js',
   '/js/editor.js',
   '/js/app.js',
   '/manifest.json',

@@ -51,6 +51,7 @@ const App = (() => {
     setupPinLock();
     setupFacebookCaptionModal();
     setupGitHubSync();
+    setupAdminPanel();
     startLiveDualClock();
 
     // 7. Load Folders and Notes List
@@ -58,10 +59,16 @@ const App = (() => {
     await refreshNotesList();
 
     const notes = await NoteStorage.getAllNotes();
+    const welcomeShown = localStorage.getItem('nhub_welcome_note_created');
     if (notes.length > 0) {
       openNote(notes[0].id);
-    } else {
+    } else if (!welcomeShown) {
+      localStorage.setItem('nhub_welcome_note_created', 'true');
       createNewNote('Welcome to NoteHub Nepal / नोटहब नेपालमा स्वागत छ', getDefaultWelcomeContent());
+    } else {
+      currentNoteId = null;
+      NoteEditor.setTitle('');
+      NoteEditor.setContent('');
     }
 
     // Register Service Worker for offline PWA
@@ -1721,6 +1728,179 @@ const App = (() => {
     const backdrop = document.getElementById('sidebar-backdrop');
     sidebar?.classList.add('-translate-x-full');
     backdrop?.classList.add('hidden');
+  }
+
+  // Admin Panel & ID Management Controller
+  let isAdminAuthenticated = false;
+
+  function setupAdminPanel() {
+    const adminBtn = document.getElementById('btn-open-admin-modal');
+    const pinInput = document.getElementById('admin-pin-auth-input');
+    const submitPinBtn = document.getElementById('btn-submit-admin-pin');
+    const pinError = document.getElementById('admin-pin-error');
+    const authView = document.getElementById('admin-auth-lock-view');
+    const dashboardView = document.getElementById('admin-dashboard-content');
+    const lockBtn = document.getElementById('btn-admin-lock-session');
+
+    adminBtn?.addEventListener('click', () => {
+      showModal('admin-panel-modal');
+      if (isAdminAuthenticated) {
+        authView?.classList.add('hidden');
+        dashboardView?.classList.remove('hidden');
+        lockBtn?.classList.remove('hidden');
+        renderAdminDashboard();
+      } else {
+        authView?.classList.remove('hidden');
+        dashboardView?.classList.add('hidden');
+        lockBtn?.classList.add('hidden');
+        if (pinInput) {
+          pinInput.value = '';
+          setTimeout(() => pinInput.focus(), 150);
+        }
+      }
+    });
+
+    function checkAdminAuth() {
+      const entered = pinInput ? pinInput.value.trim() : '';
+      if (entered === NoteAdmin.ADMIN_PIN || entered === NoteSync.getPin()) {
+        isAdminAuthenticated = true;
+        if (pinError) pinError.classList.add('hidden');
+        authView?.classList.add('hidden');
+        dashboardView?.classList.remove('hidden');
+        lockBtn?.classList.remove('hidden');
+        renderAdminDashboard();
+        showToast('Admin Dashboard Unlocked 👑');
+      } else {
+        if (pinError) pinError.classList.remove('hidden');
+        if (pinInput) pinInput.value = '';
+      }
+    }
+
+    submitPinBtn?.addEventListener('click', checkAdminAuth);
+    pinInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') checkAdminAuth();
+    });
+
+    lockBtn?.addEventListener('click', () => {
+      isAdminAuthenticated = false;
+      authView?.classList.remove('hidden');
+      dashboardView?.classList.add('hidden');
+      lockBtn?.classList.add('hidden');
+      showToast('Admin Session Locked 🔒');
+    });
+
+    // Create New Room ID
+    document.getElementById('btn-admin-create-room')?.addEventListener('click', () => {
+      const codeEl = document.getElementById('admin-new-room-code');
+      const pinEl = document.getElementById('admin-new-room-pin');
+      const descEl = document.getElementById('admin-new-room-desc');
+
+      const code = codeEl ? codeEl.value.trim() : '';
+      const pin = pinEl ? pinEl.value.trim() : '8264';
+      const desc = descEl ? descEl.value.trim() : '';
+
+      const res = NoteAdmin.createRoom(code, pin, desc);
+      if (res.success) {
+        showToast(res.message);
+        if (codeEl) codeEl.value = '';
+        if (descEl) descEl.value = '';
+        renderAdminDashboard();
+      } else {
+        alert(res.error || 'Failed to create room ID.');
+      }
+    });
+  }
+
+  async function renderAdminDashboard() {
+    const stats = await NoteAdmin.getSystemStats();
+    const rooms = NoteAdmin.getKnownRooms();
+    const meta = NoteAdmin.getRoomsMetadata();
+
+    // Update Stats Badges
+    const statRooms = document.getElementById('admin-stat-rooms');
+    const statNotes = document.getElementById('admin-stat-notes');
+    const statFolders = document.getElementById('admin-stat-folders');
+    const statStorage = document.getElementById('admin-stat-storage');
+
+    if (statRooms) statRooms.textContent = stats.totalRooms;
+    if (statNotes) statNotes.textContent = stats.totalNotes;
+    if (statFolders) statFolders.textContent = stats.totalFolders;
+    if (statStorage) statStorage.textContent = `${stats.storageKb} KB`;
+
+    // Render Table
+    const tableBody = document.getElementById('admin-rooms-table-body');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
+
+    const currentActiveRoom = NoteSync.getSyncCode();
+
+    Object.keys(rooms).forEach(roomCode => {
+      const pin = rooms[roomCode];
+      const roomMeta = meta[roomCode] || {};
+      const isActive = roomCode === currentActiveRoom;
+      const isDefault = roomCode === 'alok';
+
+      const row = document.createElement('div');
+      row.className = `p-3 flex items-center justify-between gap-2 text-xs ${
+        isActive ? 'bg-indigo-50/70 dark:bg-indigo-950/40 font-semibold' : ''
+      }`;
+
+      row.innerHTML = `
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+          <div class="w-7 h-7 rounded-xl ${
+            isActive ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+          } flex items-center justify-center font-mono font-bold text-[11px] flex-shrink-0">
+            ${roomCode.substring(0, 2).toUpperCase()}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-bold text-gray-900 dark:text-white uppercase">${roomCode}</span>
+              ${isActive ? '<span class="px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">ACTIVE NOW</span>' : ''}
+            </div>
+            <div class="text-[10px] text-gray-400 dark:text-gray-500 truncate">
+              ${roomMeta.description || 'Custom Room'} • PIN: ••••
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+          ${!isActive ? `
+            <button class="btn-admin-switch-room px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-semibold text-[11px]" data-code="${roomCode}" data-pin="${pin}">
+              Switch
+            </button>
+          ` : ''}
+          ${!isDefault ? `
+            <button class="btn-admin-del-room px-2 py-1 rounded-lg bg-red-50 dark:bg-red-950/60 hover:bg-red-100 text-red-600 dark:text-red-400 font-semibold text-[11px]" data-code="${roomCode}">
+              Delete 🗑️
+            </button>
+          ` : ''}
+        </div>
+      `;
+
+      row.querySelector('.btn-admin-switch-room')?.addEventListener('click', (e) => {
+        const code = e.currentTarget.getAttribute('data-code');
+        const pin = e.currentTarget.getAttribute('data-pin');
+        NoteSync.setSyncCode(code, pin);
+        renderAdminDashboard();
+        showToast(`Switched active Room to "${code}" 🚀`);
+      });
+
+      row.querySelector('.btn-admin-del-room')?.addEventListener('click', (e) => {
+        const code = e.currentTarget.getAttribute('data-code');
+        if (confirm(`Are you sure you want to delete Room ID "${code}"?`)) {
+          const res = NoteAdmin.deleteRoom(code);
+          if (res.success) {
+            showToast(res.message);
+            renderAdminDashboard();
+          } else {
+            alert(res.error);
+          }
+        }
+      });
+
+      tableBody.appendChild(row);
+    });
   }
 
   // Service Worker for offline PWA
