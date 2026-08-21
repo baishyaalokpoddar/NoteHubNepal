@@ -7,7 +7,14 @@
 const NoteAdmin = (() => {
   const ROOMS_REGISTRY_KEY = 'nhub_known_rooms';
   const ROOMS_METADATA_KEY = 'nhub_rooms_metadata';
-  const ADMIN_PIN = '8264';
+  const ADMIN_USER = 'alok';
+  const ADMIN_PASSWORD = '8264';
+
+  function authenticate(username, password) {
+    const cleanUser = (username || '').trim().toLowerCase();
+    const cleanPass = (password || '').trim();
+    return cleanUser === ADMIN_USER && cleanPass === ADMIN_PASSWORD;
+  }
 
   function getKnownRooms() {
     try {
@@ -119,7 +126,9 @@ const NoteAdmin = (() => {
   }
 
   return {
-    ADMIN_PIN,
+    ADMIN_USER,
+    ADMIN_PASSWORD,
+    authenticate,
     getKnownRooms,
     getRoomsMetadata,
     createRoom,

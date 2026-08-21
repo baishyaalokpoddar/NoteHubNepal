@@ -1135,18 +1135,25 @@
         <button class="modal-close-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">✕</button>
       </div>
 
-      <!-- Admin PIN Protection Screen (If not authenticated) -->
+      <!-- Admin User ID & Password Protection Screen -->
       <div id="admin-auth-lock-view" class="py-8 text-center space-y-3">
         <div class="text-3xl">🔒</div>
-        <h4 class="font-bold text-base text-gray-900 dark:text-white">Admin Access Restricted</h4>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Enter Admin Security PIN to access ID management and analytics:</p>
-        <div class="max-w-xs mx-auto flex gap-2 pt-2">
-          <input type="password" id="admin-pin-auth-input" maxlength="8" class="flex-1 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 font-mono text-center text-sm font-bold tracking-widest focus:ring-2 focus:ring-amber-500" placeholder="••••">
-          <button id="btn-submit-admin-pin" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-sm">
-            Unlock
+        <h4 class="font-bold text-base text-gray-900 dark:text-white">Admin Authentication Required</h4>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Enter Admin User ID and Password to manage room IDs &amp; system analytics:</p>
+        <div class="max-w-xs mx-auto space-y-2.5 pt-2">
+          <div>
+            <label class="block text-[11px] text-left font-semibold text-gray-700 dark:text-gray-300 mb-1">Admin User ID:</label>
+            <input type="text" id="admin-user-auth-input" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 font-mono text-sm font-bold focus:ring-2 focus:ring-amber-500" placeholder="e.g. alok">
+          </div>
+          <div>
+            <label class="block text-[11px] text-left font-semibold text-gray-700 dark:text-gray-300 mb-1">Admin Password:</label>
+            <input type="password" id="admin-pin-auth-input" maxlength="12" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 font-mono text-sm font-bold tracking-widest focus:ring-2 focus:ring-amber-500" placeholder="••••">
+          </div>
+          <button id="btn-submit-admin-pin" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-md active:scale-95 transition-all">
+            Login to Admin Panel
           </button>
         </div>
-        <p id="admin-pin-error" class="text-xs text-red-500 font-medium hidden">Incorrect PIN! Try again.</p>
+        <p id="admin-pin-error" class="text-xs text-red-500 font-medium hidden">Invalid User ID or Password! Try again.</p>
       </div>
 
       <!-- Admin Authenticated Content Dashboard -->

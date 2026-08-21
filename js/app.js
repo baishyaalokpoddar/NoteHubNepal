@@ -1735,6 +1735,7 @@ const App = (() => {
 
   function setupAdminPanel() {
     const adminBtn = document.getElementById('btn-open-admin-modal');
+    const userInput = document.getElementById('admin-user-auth-input');
     const pinInput = document.getElementById('admin-pin-auth-input');
     const submitPinBtn = document.getElementById('btn-submit-admin-pin');
     const pinError = document.getElementById('admin-pin-error');
@@ -1753,23 +1754,26 @@ const App = (() => {
         authView?.classList.remove('hidden');
         dashboardView?.classList.add('hidden');
         lockBtn?.classList.add('hidden');
-        if (pinInput) {
-          pinInput.value = '';
-          setTimeout(() => pinInput.focus(), 150);
+        if (userInput) {
+          userInput.value = '';
+          setTimeout(() => userInput.focus(), 150);
         }
+        if (pinInput) pinInput.value = '';
       }
     });
 
     function checkAdminAuth() {
-      const entered = pinInput ? pinInput.value.trim() : '';
-      if (entered === NoteAdmin.ADMIN_PIN || entered === NoteSync.getPin()) {
+      const enteredUser = userInput ? userInput.value.trim() : '';
+      const enteredPass = pinInput ? pinInput.value.trim() : '';
+
+      if (NoteAdmin.authenticate(enteredUser, enteredPass)) {
         isAdminAuthenticated = true;
         if (pinError) pinError.classList.add('hidden');
         authView?.classList.add('hidden');
         dashboardView?.classList.remove('hidden');
         lockBtn?.classList.remove('hidden');
         renderAdminDashboard();
-        showToast('Admin Dashboard Unlocked 👑');
+        showToast('Welcome, Admin Alok! 👑');
       } else {
         if (pinError) pinError.classList.remove('hidden');
         if (pinInput) pinInput.value = '';
@@ -1777,6 +1781,9 @@ const App = (() => {
     }
 
     submitPinBtn?.addEventListener('click', checkAdminAuth);
+    userInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && pinInput) pinInput.focus();
+    });
     pinInput?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') checkAdminAuth();
     });
