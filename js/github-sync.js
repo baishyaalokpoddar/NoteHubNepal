@@ -13,12 +13,12 @@ const GitHubSync = (() => {
       return data ? JSON.parse(data) : {
         enabled: false,
         token: '',
-        repo: '', // format: "username/repo"
+        repo: 'baishyaalokpoddar/NoteHubNepal', // Default repository
         branch: 'main',
         autoSyncOnSave: true
       };
     } catch (e) {
-      return { enabled: false, token: '', repo: '', branch: 'main', autoSyncOnSave: true };
+      return { enabled: false, token: '', repo: 'baishyaalokpoddar/NoteHubNepal', branch: 'main', autoSyncOnSave: true };
     }
   }
 
