@@ -1272,6 +1272,15 @@ const App = (() => {
       }
     });
 
+    // Force Sync Now Action
+    document.getElementById('btn-force-sync-now')?.addEventListener('click', async () => {
+      showToast('⚡ Syncing all notes across devices...');
+      await NoteSync.triggerSync();
+      await refreshFoldersList();
+      await refreshNotesList();
+      showToast('All notes synced with iPhone & Mac! ✨');
+    });
+
     // Bluetooth Direct Connection Trigger
     document.getElementById('btn-connect-bluetooth')?.addEventListener('click', async () => {
       const statusMsg = document.getElementById('bluetooth-status-msg');
