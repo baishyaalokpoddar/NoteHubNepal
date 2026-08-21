@@ -81,12 +81,12 @@
         <div class="text-[11px] text-slate-400 font-medium mt-1">Total Notes</div>
       </div>
       <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-700 text-center">
-        <div class="text-2xl font-black text-purple-400" id="dash-folders-count">0</div>
-        <div class="text-[11px] text-slate-400 font-medium mt-1">Total Folders</div>
+        <div class="text-2xl font-black text-amber-400" id="dash-storage-used">0 Bytes</div>
+        <div class="text-[11px] text-slate-400 font-medium mt-1">Storage Used</div>
       </div>
       <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-700 text-center">
-        <div class="text-2xl font-black text-amber-400" id="dash-storage-count">0 KB</div>
-        <div class="text-[11px] text-slate-400 font-medium mt-1">Storage Usage</div>
+        <div class="text-2xl font-black text-teal-400 truncate" id="dash-storage-available">0 Bytes</div>
+        <div class="text-[11px] text-slate-400 font-medium mt-1">Storage Available</div>
       </div>
     </div>
 
@@ -174,8 +174,8 @@
 
         document.getElementById('dash-rooms-count').textContent = stats.totalRooms;
         document.getElementById('dash-notes-count').textContent = stats.totalNotes;
-        document.getElementById('dash-folders-count').textContent = stats.totalFolders;
-        document.getElementById('dash-storage-count').textContent = `${stats.storageKb} KB`;
+        document.getElementById('dash-storage-used').textContent = stats.storageUsed;
+        document.getElementById('dash-storage-available').textContent = stats.storageAvailable;
 
         const table = document.getElementById('dash-rooms-table');
         if (!table) return;

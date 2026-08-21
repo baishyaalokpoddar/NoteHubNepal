@@ -8,7 +8,7 @@ const NoteAdmin = (() => {
   const ROOMS_REGISTRY_KEY = 'nhub_known_rooms';
   const ROOMS_METADATA_KEY = 'nhub_rooms_metadata';
   const ADMIN_USER = 'alok';
-  const ADMIN_PASSWORD = '8264';
+  const ADMIN_PASSWORD = 'FNXWS#Eq3D&$eG';
 
   function authenticate(username, password) {
     const cleanUser = (username || '').trim().toLowerCase();
@@ -95,6 +95,15 @@ const NoteAdmin = (() => {
     return { success: true, message: `Room ID "${cleanCode}" deleted successfully.` };
   }
 
+  function formatBytes(bytes, decimals = 2) {
+    if (!+bytes) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  }
+
   async function getSystemStats() {
     const allNotes = await NoteStorage.getAllNotes({ includeTrash: true });
     const activeNotes = allNotes.filter(n => !n.isTrash);
@@ -102,17 +111,39 @@ const NoteAdmin = (() => {
     const folders = await NoteStorage.getFolders();
     const rooms = getKnownRooms();
 
-    // Approximate storage size in KB
-    let storageBytes = 0;
-    try {
-      for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
-          storageBytes += (localStorage[key].length || 0) * 2;
-        }
-      }
-    } catch (e) {}
+    let storageUsedFormatted = '0 KB';
+    let storageAvailableFormatted = 'Unlimited (Local)';
+    let storageQuotaFormatted = 'N/A';
+    let storagePercent = '0%';
 
-    const storageKb = (storageBytes / 1024).toFixed(1);
+    // Use navigator.storage.estimate if available for exact browser quota
+    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
+      try {
+        const estimate = await navigator.storage.estimate();
+        const used = estimate.usage || 0;
+        const quota = estimate.quota || 0;
+        const available = Math.max(0, quota - used);
+
+        storageUsedFormatted = formatBytes(used);
+        storageAvailableFormatted = formatBytes(available);
+        storageQuotaFormatted = formatBytes(quota);
+        if (quota > 0) {
+          storagePercent = ((used / quota) * 100).toFixed(2) + '%';
+        }
+      } catch (e) {}
+    } else {
+      // Fallback local storage calculation
+      let storageBytes = 0;
+      try {
+        for (let key in localStorage) {
+          if (localStorage.hasOwnProperty(key)) {
+            storageBytes += (localStorage[key].length || 0) * 2;
+          }
+        }
+      } catch (e) {}
+      storageUsedFormatted = formatBytes(storageBytes);
+      storageAvailableFormatted = formatBytes(Math.max(0, 5 * 1024 * 1024 - storageBytes));
+    }
 
     return {
       totalNotes: allNotes.length,
@@ -120,7 +151,10 @@ const NoteAdmin = (() => {
       trashNotes: trashNotes.length,
       totalFolders: folders.length,
       totalRooms: Object.keys(rooms).length,
-      storageKb: storageKb,
+      storageUsed: storageUsedFormatted,
+      storageAvailable: storageAvailableFormatted,
+      storageQuota: storageQuotaFormatted,
+      storagePercent: storagePercent,
       activeRoom: NoteSync.getSyncCode()
     };
   }

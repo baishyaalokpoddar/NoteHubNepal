@@ -1842,13 +1842,13 @@ const App = (() => {
     // Update Stats Badges
     const statRooms = document.getElementById('admin-stat-rooms');
     const statNotes = document.getElementById('admin-stat-notes');
-    const statFolders = document.getElementById('admin-stat-folders');
-    const statStorage = document.getElementById('admin-stat-storage');
+    const statStorageUsed = document.getElementById('admin-stat-storage-used');
+    const statStorageAvailable = document.getElementById('admin-stat-storage-available');
 
     if (statRooms) statRooms.textContent = stats.totalRooms;
     if (statNotes) statNotes.textContent = stats.totalNotes;
-    if (statFolders) statFolders.textContent = stats.totalFolders;
-    if (statStorage) statStorage.textContent = `${stats.storageKb} KB`;
+    if (statStorageUsed) statStorageUsed.textContent = stats.storageUsed;
+    if (statStorageAvailable) statStorageAvailable.textContent = stats.storageAvailable;
 
     // Render Table
     const tableBody = document.getElementById('admin-rooms-table-body');
