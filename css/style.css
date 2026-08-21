@@ -1,0 +1,296 @@
+/* NoteHub Nepal Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Mukta:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+  --font-primary: 'Mukta', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Multi-Theme CSS Variables & Classes */
+html.theme-sepia {
+  filter: sepia(0.2) saturate(1.1);
+  --tw-bg-opacity: 1;
+}
+html.theme-sepia body {
+  background-color: #fcf8f2 !important;
+  color: #433422 !important;
+}
+html.theme-sepia .bg-white {
+  background-color: #fbf5eb !important;
+}
+html.theme-sepia .bg-gray-50 {
+  background-color: #f7efe1 !important;
+}
+html.theme-sepia .border-gray-200 {
+  border-color: #e6dac8 !important;
+}
+
+html.theme-emerald body {
+  background-color: #f0fdf4 !important;
+  color: #064e3b !important;
+}
+html.theme-emerald.dark body {
+  background-color: #062419 !important;
+  color: #ecfdf5 !important;
+}
+html.theme-emerald.dark .bg-gray-800, html.theme-emerald.dark .bg-gray-900 {
+  background-color: #083324 !important;
+}
+
+html.theme-ocean body {
+  background-color: #f0f9ff !important;
+  color: #0c4a6e !important;
+}
+html.theme-ocean.dark body {
+  background-color: #071e33 !important;
+  color: #f0f9ff !important;
+}
+html.theme-ocean.dark .bg-gray-800, html.theme-ocean.dark .bg-gray-900 {
+  background-color: #0a2942 !important;
+}
+
+html.theme-sunset body {
+  background-color: #fff7ed !important;
+  color: #7c2d12 !important;
+}
+html.theme-sunset.dark body {
+  background-color: #2b1108 !important;
+  color: #ffedd5 !important;
+}
+html.theme-sunset.dark .bg-gray-800, html.theme-sunset.dark .bg-gray-900 {
+  background-color: #381a10 !important;
+}
+
+html.theme-lavender body {
+  background-color: #faf5ff !important;
+  color: #581c87 !important;
+}
+html.theme-lavender.dark body {
+  background-color: #1f0b2e !important;
+  color: #fae8ff !important;
+}
+html.theme-lavender.dark .bg-gray-800, html.theme-lavender.dark .bg-gray-900 {
+  background-color: #2e1045 !important;
+}
+
+.font-nepali {
+  font-family: 'Mukta', 'Noto Sans Devanagari', sans-serif;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+}
+
+/* Editor Styling */
+#note-editor {
+  min-height: calc(100vh - 280px);
+  outline: none;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+#note-editor:empty:before {
+  content: 'Start typing your thoughts here... (नेपाली टाइप गर्न माथिको "नेपाली" बटन थिच्नुहोस् वा Ctrl+G प्रयोग गर्नुहोस्)';
+  color: #9ca3af;
+  pointer-events: none;
+  display: block;
+}
+
+#note-editor h1 {
+  font-size: 1.85rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+#note-editor h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 0.85rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.35;
+}
+
+#note-editor h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.4;
+}
+
+#note-editor p {
+  margin-bottom: 0.75rem;
+}
+
+#note-editor ul, #note-editor ol {
+  padding-left: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+#note-editor ul {
+  list-style-type: disc;
+}
+
+#note-editor ol {
+  list-style-type: decimal;
+}
+
+#note-editor li {
+  margin-bottom: 0.25rem;
+}
+
+#note-editor blockquote {
+  border-left: 4px solid #6366f1;
+  padding-left: 1rem;
+  font-style: italic;
+  color: #4b5563;
+  margin: 1rem 0;
+}
+.dark #note-editor blockquote {
+  border-left-color: #818cf8;
+  color: #9ca3af;
+}
+
+#note-editor pre {
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.875rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+.dark #note-editor pre {
+  background-color: #1f2937;
+  color: #e5e7eb;
+}
+
+/* Interactive Checklist Task items */
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0;
+}
+
+.task-item input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+  accent-color: #4f46e5;
+}
+
+.task-completed .task-text {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+/* Floating Selection Tooltip */
+#selection-tooltip {
+  position: absolute;
+  z-index: 100;
+  display: none;
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Context Menu */
+#custom-context-menu {
+  animation: contextMenuPop 0.12s ease-out;
+}
+
+@keyframes contextMenuPop {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Toolbar button active state */
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  color: #4b5563;
+  transition: all 0.15s ease;
+}
+.dark .tool-btn {
+  color: #9ca3af;
+}
+.tool-btn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+.dark .tool-btn:hover {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+/* Toast animation */
+.animate-fade-in {
+  animation: toastFade 0.25s ease-out;
+}
+
+@keyframes toastFade {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Mobile Bottom Bar styling */
+@media (max-width: 768px) {
+  #note-editor {
+    min-height: calc(100vh - 360px);
+    font-size: 1rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #note-editor, #note-editor * {
+    visibility: visible;
+  }
+  #note-editor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.folder-item.active {
+  background-color: #e0e7ff;
+  color: #4338ca;
+  font-weight: 600;
+}
+.dark .folder-item.active {
+  background-color: #312e81;
+  color: #e0e7ff;
+}

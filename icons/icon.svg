@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#dc2626" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="110" fill="url(#grad)" />
+  <g filter="url(#shadow)" transform="translate(96, 80)">
+    <!-- Notepad paper background -->
+    <rect width="320" height="360" rx="24" fill="#ffffff" />
+    <rect x="0" y="0" width="320" height="64" rx="24" fill="#f3f4f6" />
+    <!-- Notepad binder holes -->
+    <circle cx="60" cy="32" r="10" fill="#cbd5e1" />
+    <circle cx="160" cy="32" r="10" fill="#cbd5e1" />
+    <circle cx="260" cy="32" r="10" fill="#cbd5e1" />
+    <!-- Notepad text lines -->
+    <rect x="40" y="100" width="240" height="16" rx="8" fill="#e0e7ff" />
+    <rect x="40" y="140" width="200" height="14" rx="7" fill="#f1f5f9" />
+    <rect x="40" y="174" width="220" height="14" rx="7" fill="#f1f5f9" />
+    <rect x="40" y="208" width="160" height="14" rx="7" fill="#f1f5f9" />
+    <!-- Nepali letter & Pen icon -->
+    <text x="50" y="310" font-family="sans-serif" font-weight="bold" font-size="72" fill="#4f46e5">ने</text>
+    <path d="M 230 250 L 270 290 L 285 275 L 245 235 Z" fill="#ef4444" />
+    <polygon points="220,260 230,250 225,245" fill="#1e293b" />
+  </g>
+</svg>

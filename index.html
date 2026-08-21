@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NoteHub Nepal - Smart Nepali & English Cloud Notepad</title>
+  
+  <!-- PWA Metadata -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NoteHub Nepal">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- PeerJS for Multi-Device WebRTC Room Sync -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 flex flex-col overflow-hidden select-text transition-colors duration-200">
+
+  <!-- Top Global Header -->
+  <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700/80 px-3 md:px-4 py-2 flex items-center justify-between shadow-xs z-20">
+    <div class="flex items-center gap-2 md:gap-3">
+      <!-- Mobile sidebar toggle -->
+      <button id="btn-mobile-menu" class="md:hidden p-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" title="Open Menu / Folders">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
+
+      <!-- App Logo & Title -->
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xs tracking-wider shadow-sm">
+          NH
+        </div>
+        <div>
+          <h1 class="font-bold text-base md:text-lg leading-tight flex items-center gap-1.5">
+            <span>NoteHub</span>
+            <span class="text-xs px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-semibold">Nepal</span>
+          </h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live AD + BS Dual Calendar Clock -->
+    <div id="live-clock-display" class="hidden lg:flex items-center">
+      <!-- Injected by NepaliCalendar in both Nepali and English -->
+    </div>
+
+    <!-- Right Top Header Actions -->
+    <div class="flex items-center gap-1.5 sm:gap-2">
+      
+      <!-- Offline Dictionary Button -->
+      <button id="btn-open-dictionary-modal" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 flex items-center gap-1 transition-colors" title="Offline Nepali-English Dictionary">
+        <span>Dictionary</span>
+      </button>
+
+      <!-- Date Converter AD <-> BS Button -->
+      <button id="btn-open-converter-modal" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 border border-indigo-200 dark:border-indigo-800/60 flex items-center gap-1 transition-colors" title="Convert Date AD <-> BS">
+        <span class="hidden md:inline">AD ⇄ BS</span>
+        <span>Converter</span>
+      </button>
+
+      <!-- Popup Options Button -->
+      <button id="btn-open-popup-settings" class="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Popup &amp; Suggestion Settings">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+      </button>
+
+      <!-- Cloud Sync Room Badge / Trigger -->
+      <div id="sync-status-badge" class="cursor-pointer" title="Click to change Sync Room Code">
+        <!-- Injected by sync.js -->
+      </div>
+      <button id="btn-open-sync-modal" class="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Sync &amp; Bluetooth Settings">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+      </button>
+
+      <!-- Nepali Typing Mode Toggle -->
+      <button id="btn-toggle-nepali" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Toggle Nepali Romanized Typing (Ctrl+G)">
+        नेपाली (OFF)
+      </button>
+
+      <!-- Theme Picker Dropdown -->
+      <div class="relative">
+        <button id="btn-open-theme-picker" class="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-1 text-xs font-medium" title="Change Theme">
+          <span class="text-[11px] capitalize" id="current-theme-name">Theme</span>
+        </button>
+        <div id="theme-dropdown-menu" class="hidden absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-1 z-50 text-xs">
+          <button class="theme-select-btn w-full text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between" data-theme="light">
+            <span>Light (Clean)</span>
+          </button>
+          <button class="theme-select-btn w-full text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between" data-theme="dark">
+            <span>Dark (OLED)</span>
+          </button>
+          <button class="theme-select-btn w-full text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between text-emerald-600 dark:text-emerald-400" data-theme="emerald">
+            <span>Forest Emerald</span>
+          </button>
+          <button class="theme-select-btn w-full text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between text-sky-600 dark:text-sky-400" data-theme="ocean">
+            <span>Ocean Blue</span>
+          </button>
+          <button class="theme-select-btn w-full text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between text-amber-600 dark:text-amber-400" data-theme="sunset">
+            <span>Sunset Warm</span>
+          </button>
+          <button class="theme-select-btn w-full text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between text-purple-600 dark:text-purple-400" data-theme="lavender">
+            <span>Lavender Rose</span>
+          </button>
+          <button class="theme-select-btn w-full text-left px-3 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between text-yellow-800 dark:text-yellow-500" data-theme="sepia">
+            <span>Retro Sepia</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- Mobile Backdrop -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-30 hidden md:hidden"></div>
+
+    <!-- Left Sidebar: Folders, Note Management & Search -->
+    <aside id="main-sidebar" class="w-80 md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700/80 flex flex-col absolute md:static inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out shadow-xl md:shadow-none">
+      
+      <!-- New Note Action & Search -->
+      <div class="p-3 border-b border-gray-100 dark:border-gray-700/50 space-y-2">
+        <button id="btn-new-note" class="w-full py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          <span>New Note (नयाँ नोट)</span>
+        </button>
+
+        <div class="relative">
+          <input type="text" id="search-notes-input" placeholder="Search notes (English / नेपाली)..." class="w-full pl-8 pr-3 py-2 text-xs bg-gray-100 dark:bg-gray-700/70 rounded-xl border-0 focus:ring-2 focus:ring-indigo-500 text-gray-800 dark:text-gray-200 placeholder-gray-400">
+          <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+      </div>
+
+      <!-- Folders Management Section -->
+      <div class="px-3 py-2 border-b border-gray-100 dark:border-gray-700/50">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Folders (फोल्डरहरू)</span>
+          <button id="btn-new-folder" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-semibold flex items-center gap-0.5" title="Create New Folder">
+            <span>+ New</span>
+          </button>
+        </div>
+        <div id="folders-list" class="flex gap-1 overflow-x-auto pb-1 text-xs">
+          <!-- Populated dynamically by app.js -->
+        </div>
+      </div>
+
+      <!-- Filters (All, Pinned, Trash) -->
+      <div class="px-3 py-2 flex items-center gap-1 border-b border-gray-100 dark:border-gray-700/50 text-xs">
+        <button class="filter-btn flex-1 py-1.5 px-2 rounded-lg font-medium bg-indigo-600 text-white dark:bg-indigo-600 transition-colors flex items-center justify-center gap-1" data-filter="all">
+          <span>All</span>
+          <span id="total-notes-badge" class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]">0</span>
+        </button>
+        <button class="filter-btn flex-1 py-1.5 px-2 rounded-lg font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-1" data-filter="pinned">
+          <span>Pinned</span>
+        </button>
+        <button class="filter-btn flex-1 py-1.5 px-2 rounded-lg font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-1" data-filter="trash">
+          <span>Trash</span>
+          <span id="trash-notes-badge" class="px-1.5 py-0.2 rounded-full bg-gray-200 dark:bg-gray-600 text-[10px]">0</span>
+        </button>
+      </div>
+
+      <!-- Notes List -->
+      <div id="notes-list" class="flex-1 overflow-y-auto p-3 space-y-2">
+        <!-- Populated dynamically by app.js -->
+      </div>
+
+      <!-- Sidebar Footer (Import/Export & GitHub Sync) -->
+      <div class="p-3 border-t border-gray-100 dark:border-gray-700/50 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 flex-wrap gap-1">
+        <div class="flex items-center gap-1">
+          <button id="btn-open-export-modal" class="px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-1 font-medium" title="Export Notes">
+            <span>Export</span>
+          </button>
+          <input type="file" id="import-file-input" accept=".txt,.md,.mb,.json" class="hidden">
+          <button id="btn-import-file" class="px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-1 font-medium" title="Import Note (.txt, .md, .mb, .json)">
+            <span>Import</span>
+          </button>
+          <button id="btn-open-github-modal" class="px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-1 font-medium text-gray-700 dark:text-gray-300" title="GitHub Auto-Sync">
+            <span>GitHub</span>
+          </button>
+        </div>
+        <button id="btn-empty-trash" class="text-red-500 hover:text-red-700 dark:text-red-400 p-1 text-xs font-semibold" title="Empty Trash">
+          Empty Trash
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace (Editor Area) -->
+    <main class="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden relative">
+
+      <!-- Note Header Bar -->
+      <div class="px-3 md:px-4 py-2 border-b border-gray-200 dark:border-gray-800 flex flex-wrap items-center justify-between gap-2 md:gap-3 bg-gray-50/50 dark:bg-gray-900/50">
+        
+        <!-- Note Title Input & Dual Date Subtitle -->
+        <div class="flex-1 min-w-[180px]">
+          <div class="flex items-center gap-2">
+            <input type="text" id="note-title" placeholder="Note Title (शीर्षक)..." class="w-full bg-transparent font-bold text-base md:text-xl text-gray-900 dark:text-gray-100 border-0 focus:ring-0 focus:outline-none placeholder-gray-400">
+          </div>
+          <div class="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 flex-wrap">
+            <!-- Folder Badge Selector -->
+            <select id="note-folder-select" class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded px-1.5 py-0.5 border-0 font-medium text-[11px] focus:ring-1 focus:ring-indigo-500">
+              <!-- Populated dynamically -->
+            </select>
+            <span class="text-gray-300 dark:text-gray-600">•</span>
+            <span id="current-note-time-bs" class="font-nepali text-red-700 dark:text-red-400 font-medium">BS: --</span>
+            <span class="text-gray-300 dark:text-gray-600 hidden sm:inline">•</span>
+            <span id="current-note-time-ad" class="text-gray-600 dark:text-gray-300 hidden sm:inline">AD: --</span>
+          </div>
+        </div>
+
+        <!-- Note Actions Toolbar -->
+        <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
+          
+          <!-- Explicit Save Note Button -->
+          <button id="btn-save-note-header" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95" title="Save Note (Ctrl+S)">
+            <span>Save Note</span>
+          </button>
+
+          <!-- Facebook Caption Mode Button -->
+          <button id="btn-open-facebook-caption" class="px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/80 border border-blue-200 dark:border-blue-800/60 text-xs font-semibold flex items-center gap-1 transition-colors" title="Facebook Caption Formatter &amp; Post Preview">
+            <span>FB Caption</span>
+          </button>
+
+          <!-- Download / Export Dropdown Button -->
+          <div class="relative">
+            <button id="btn-quick-download-dropdown" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 text-xs font-semibold flex items-center gap-1 transition-colors" title="Download note in multiple formats">
+              <span>Download</span>
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="quick-download-menu" class="hidden absolute right-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-1.5 z-50 text-xs">
+              <div class="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Select Download Format:</div>
+              <button class="export-format-btn w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2" data-format="txt">
+                <span>Plain Text (.txt)</span>
+              </button>
+              <button class="export-format-btn w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2" data-format="md">
+                <span>Markdown (.md)</span>
+              </button>
+              <button class="export-format-btn w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2" data-format="mb">
+                <span>NoteHub Multi-Block (.mb)</span>
+              </button>
+              <button class="export-format-btn w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2" data-format="html">
+                <span>HTML Webpage (.html)</span>
+              </button>
+              <button class="export-format-btn w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2" data-format="doc">
+                <span>Word Document (.doc)</span>
+              </button>
+              <button class="export-format-btn w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2" data-format="pdf">
+                <span>PDF Document (.pdf)</span>
+              </button>
+              <div class="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+              <button class="export-format-btn w-full text-left px-3 py-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 flex items-center gap-2 font-medium" data-format="json">
+                <span>Backup All (.json)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Color Picker Dropdown -->
+          <div class="flex items-center gap-1 px-1.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800">
+            <button class="note-color-choice w-4 h-4 rounded-full bg-white border border-gray-300" data-color="#ffffff" title="White"></button>
+            <button class="note-color-choice w-4 h-4 rounded-full bg-amber-200 border border-amber-300" data-color="#fef3c7" title="Yellow"></button>
+            <button class="note-color-choice w-4 h-4 rounded-full bg-emerald-200 border border-emerald-300" data-color="#d1fae5" title="Green"></button>
+            <button class="note-color-choice w-4 h-4 rounded-full bg-sky-200 border border-sky-300" data-color="#e0f2fe" title="Blue"></button>
+            <button class="note-color-choice w-4 h-4 rounded-full bg-pink-200 border border-pink-300" data-color="#fce7f3" title="Pink"></button>
+          </div>
+
+          <!-- Pin Note Button -->
+          <button id="btn-pin-note" class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-xs font-semibold" title="Pin Note">
+            Pin
+          </button>
+
+          <!-- Reminder Button -->
+          <button id="btn-open-reminder-modal" class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-xs font-semibold" title="Set Reminder">
+            Reminder
+          </button>
+
+          <!-- Rename Button -->
+          <button id="btn-rename-note" class="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-xs font-semibold" title="Rename Note">
+            Rename
+          </button>
+
+          <!-- Delete Note Button -->
+          <button id="btn-delete-note" class="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-xs font-semibold" title="Delete Note">
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Auto-Suggestion Bar (Floats right above editor when typing) -->
+      <div id="auto-suggestion-bar" class="hidden flex items-center gap-1.5 px-4 py-1.5 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xs border-b border-indigo-100 dark:border-indigo-900/50 overflow-x-auto shadow-xs z-10 transition-all">
+        <!-- Injected dynamically by editor.js -->
+      </div>
+
+      <!-- Rich Formatting Toolbar -->
+      <div class="px-3 md:px-4 py-1.5 border-b border-gray-100 dark:border-gray-800 flex items-center gap-1 overflow-x-auto bg-white dark:bg-gray-900 select-none">
+        
+        <!-- Text Styles -->
+        <button id="btn-bold" class="tool-btn font-bold" title="Bold (Ctrl+B)">B</button>
+        <button id="btn-italic" class="tool-btn italic font-serif" title="Italic (Ctrl+I)">I</button>
+        <button id="btn-underline" class="tool-btn underline" title="Underline (Ctrl+U)">U</button>
+        <button id="btn-strike" class="tool-btn line-through" title="Strikethrough">S</button>
+
+        <span class="w-[1px] h-5 bg-gray-200 dark:bg-gray-700 mx-1"></span>
+
+        <!-- Headings -->
+        <button id="btn-h1" class="tool-btn font-bold text-xs" title="Heading 1">H1</button>
+        <button id="btn-h2" class="tool-btn font-bold text-xs" title="Heading 2">H2</button>
+        <button id="btn-h3" class="tool-btn font-bold text-xs" title="Heading 3">H3</button>
+        <button id="btn-paragraph" class="tool-btn text-xs" title="Normal text">¶</button>
+
+        <span class="w-[1px] h-5 bg-gray-200 dark:bg-gray-700 mx-1"></span>
+
+        <!-- Lists & Checklist -->
+        <button id="btn-ul" class="tool-btn text-sm" title="Bullet List">• List</button>
+        <button id="btn-ol" class="tool-btn text-xs" title="Numbered List">1. List</button>
+        <button id="btn-task" class="tool-btn text-xs font-semibold text-indigo-600 dark:text-indigo-400" title="Add To-Do Checklist">Checkbox</button>
+
+        <span class="w-[1px] h-5 bg-gray-200 dark:bg-gray-700 mx-1"></span>
+
+        <!-- Highlighting Colors -->
+        <div class="flex items-center gap-1 px-1">
+          <button class="highlight-color-btn w-4 h-4 rounded bg-yellow-300 hover:scale-110 transition-transform" data-color="#fef08a" title="Yellow Highlight"></button>
+          <button class="highlight-color-btn w-4 h-4 rounded bg-emerald-300 hover:scale-110 transition-transform" data-color="#a7f3d0" title="Green Highlight"></button>
+          <button class="highlight-color-btn w-4 h-4 rounded bg-sky-300 hover:scale-110 transition-transform" data-color="#bae6fd" title="Blue Highlight"></button>
+          <button class="highlight-color-btn w-4 h-4 rounded bg-pink-300 hover:scale-110 transition-transform" data-color="#fbcfe8" title="Pink Highlight"></button>
+        </div>
+
+        <span class="w-[1px] h-5 bg-gray-200 dark:bg-gray-700 mx-1"></span>
+
+        <!-- Quote, Code & Image -->
+        <button id="btn-quote" class="tool-btn text-xs" title="Quote">Quote</button>
+        <button id="btn-code" class="tool-btn font-mono text-xs" title="Code Block">&lt;/&gt;</button>
+        <button id="btn-insert-image" class="tool-btn text-xs font-semibold text-emerald-600 dark:text-emerald-400" title="Insert Image (PNG, JPG, WebP, GIF, SVG)">🖼️ Image</button>
+        <input type="file" id="note-image-file-input" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/svg+xml" class="hidden">
+        <button id="btn-insert-date" class="tool-btn text-xs text-indigo-600 dark:text-indigo-400 font-medium" title="Insert Current Date in Nepali + English">+Date</button>
+        <button id="btn-clear" class="tool-btn text-xs text-red-500" title="Clear Formatting">Clear</button>
+
+        <div class="flex-1"></div>
+
+        <!-- Font Selector -->
+        <select id="font-family-select" class="text-xs bg-gray-100 dark:bg-gray-800 border-0 rounded-lg px-2 py-1 text-gray-700 dark:text-gray-300 focus:ring-1 focus:ring-indigo-500">
+          <option value="Mukta">Font: Mukta (नेपाली)</option>
+          <option value="Noto Sans Devanagari">Font: Noto Sans (नेपाली)</option>
+          <option value="Poppins">Font: Poppins</option>
+          <option value="Roboto">Font: Roboto</option>
+          <option value="Fira Code">Font: Monospace</option>
+        </select>
+
+        <!-- Spellcheck Toggle Button -->
+        <button id="btn-toggle-spellcheck" class="tool-btn text-xs ml-1 font-semibold" title="Toggle Spellcheck">
+          ✓ Spellcheck
+        </button>
+      </div>
+
+      <!-- Editable Content Area -->
+      <div class="flex-1 overflow-y-auto px-4 md:px-8 py-4 focus:outline-none cursor-text" onclick="document.getElementById('note-editor').focus()">
+        <div id="note-editor" contenteditable="true" spellcheck="true" class="max-w-4xl mx-auto py-2">
+          <!-- Note content loaded here -->
+        </div>
+      </div>
+
+      <!-- Bottom Status Bar with Copyright -->
+      <footer class="px-4 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 flex-wrap gap-2">
+        <div class="flex items-center gap-3 flex-wrap">
+          <span id="note-stats">0 words • 0 chars</span>
+          <span>•</span>
+          <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">100% Offline Ready</span>
+          <span>•</span>
+          <span>© 2026 <a href="https://alokpoddarbaishya.com.np" target="_blank" rel="noopener noreferrer" class="hover:underline text-indigo-600 dark:text-indigo-400 font-semibold">alokpoddarbaishya</a></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-save-note-bottom" class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium flex items-center gap-1 transition-all active:scale-95">
+            <span>Save Now</span>
+          </button>
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Autosaved</span>
+        </div>
+      </footer>
+
+      <!-- Mobile Bottom Action Bar -->
+      <div class="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 px-3 py-2 flex items-center justify-between shadow-lg z-30">
+        <button id="mobile-btn-sidebar" class="flex flex-col items-center gap-0.5 text-gray-600 dark:text-gray-300">
+          <span class="text-xs font-bold">Menu</span>
+          <span class="text-[10px] font-medium">Folders</span>
+        </button>
+        <button id="mobile-btn-new-note" class="flex flex-col items-center gap-0.5 text-indigo-600 dark:text-indigo-400 font-semibold">
+          <span class="text-xs font-bold">+Note</span>
+          <span class="text-[10px]">New Note</span>
+        </button>
+        <button id="mobile-btn-save-note" class="flex flex-col items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+          <span class="text-xs font-bold">Save</span>
+          <span class="text-[10px]">Save Now</span>
+        </button>
+        <button id="mobile-btn-nepali" class="flex flex-col items-center gap-0.5 text-red-600 dark:text-red-400 font-medium">
+          <span class="text-xs font-bold">नेपाली</span>
+          <span class="text-[10px]">Typing</span>
+        </button>
+        <button id="mobile-btn-converter" class="flex flex-col items-center gap-0.5 text-gray-600 dark:text-gray-300">
+          <span class="text-xs font-bold">AD⇄BS</span>
+          <span class="text-[10px]">Converter</span>
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Floating Selection Tooltip ("Add to Note") -->
+  <div id="selection-tooltip" class="bg-gray-900 text-white rounded-xl shadow-2xl p-1 flex items-center gap-1 border border-gray-700">
+    <button id="tooltip-copy-note-btn" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-1">
+      <span>Add to Note</span>
+    </button>
+    <button id="tooltip-define-btn" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1">
+      <span>Define</span>
+    </button>
+    <button id="tooltip-new-note-btn" class="px-2.5 py-1 text-xs font-medium rounded-lg hover:bg-gray-800 text-gray-300 flex items-center gap-1">
+      <span>New Note</span>
+    </button>
+  </div>
+
+  <!-- Dynamic Word Definition Floating Card -->
+  <div id="dynamic-dict-popup" class="hidden fixed z-50 w-72 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 animate-fade-in text-gray-800 dark:text-gray-100">
+    <!-- Populated dynamically -->
+  </div>
+
+  <!-- Custom Right-Click Context Menu -->
+  <div id="custom-context-menu" class="hidden fixed z-50 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 py-1.5 text-xs text-gray-700 dark:text-gray-200">
+    <div class="px-3 py-1.5 font-semibold text-gray-400 dark:text-gray-500 text-[10px] uppercase tracking-wider border-b border-gray-100 dark:border-gray-700/60">
+      Selection: <span id="ctx-selection-preview" class="text-indigo-600 dark:text-indigo-400 font-normal"></span>
+    </div>
+    <button id="ctx-copy-to-current" class="w-full text-left px-3 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-2">
+      <span>Copy Selection to Current Note</span>
+    </button>
+    <button id="ctx-create-new-note" class="w-full text-left px-3 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-2">
+      <span>Create New Note from Selection</span>
+    </button>
+    <button id="ctx-append-with-timestamp" class="w-full text-left px-3 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-2">
+      <span>Append with Nepali &amp; English Date</span>
+    </button>
+    <div class="border-t border-gray-100 dark:border-gray-700/60 my-1"></div>
+    <button id="ctx-copy-clipboard" class="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+      <span>Copy to System Clipboard</span>
+    </button>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- 1. Offline Nepali-English Dictionary Modal -->
+  <div id="dictionary-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
+        <div>
+          <h3 class="font-bold text-lg text-gray-900 dark:text-white">Offline Nepali-English Dictionary</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">नेपाली-अंग्रेजी शब्दकोश (100% Offline)</p>
+        </div>
+        <button class="modal-close-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">✕</button>
+      </div>
+
+      <div class="mt-4">
+        <div class="relative">
+          <input type="text" id="dict-search-input" placeholder="Search English or Nepali word (e.g. friend, पानी, peace, समय)..." class="w-full pl-9 pr-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-sm focus:ring-2 focus:ring-indigo-500 text-gray-800 dark:text-gray-200">
+          <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+      </div>
+
+      <!-- Dictionary Results List -->
+      <div id="dict-results-list" class="flex-1 overflow-y-auto mt-4 space-y-2 pr-1 min-h-[220px]">
+        <!-- Populated dynamically -->
+      </div>
+
+      <div class="flex justify-end pt-3 border-t border-gray-100 dark:border-gray-700 mt-2">
+        <button class="modal-close-btn px-4 py-2 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-xl">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Popup Settings & Preferences Modal -->
+  <div id="popup-settings-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
+        <div>
+          <h3 class="font-bold text-lg text-gray-900 dark:text-white">Popup &amp; Suggestion Preferences</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Configure floating popups and auto-complete</p>
+        </div>
+        <button class="modal-close-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-3 text-xs">
+        <label class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 cursor-pointer">
+          <div>
+            <div class="font-bold text-gray-800 dark:text-gray-200">Live Auto-Suggestion Word Bar</div>
+            <div class="text-gray-500 dark:text-gray-400 text-[11px]">Show word completions and Nepali suggestions while typing</div>
+          </div>
+          <input type="checkbox" id="pref-auto-suggestions" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+        </label>
+
+        <label class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 cursor-pointer">
+          <div>
+            <div class="font-bold text-gray-800 dark:text-gray-200">Selection Floating "Copy to Note" Popup</div>
+            <div class="text-gray-500 dark:text-gray-400 text-[11px]">Show action tooltip when highlighting words on the page</div>
+          </div>
+          <input type="checkbox" id="pref-selection-tooltip" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+        </label>
+
+        <label class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 cursor-pointer">
+          <div>
+            <div class="font-bold text-gray-800 dark:text-gray-200">Due Note Reminder Popup &amp; Sound</div>
+            <div class="text-gray-500 dark:text-gray-400 text-[11px]">Display alert popup and chime when scheduled reminder is due</div>
+          </div>
+          <input type="checkbox" id="pref-reminders" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+        </label>
+
+        <label class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 cursor-pointer">
+          <div>
+            <div class="font-bold text-gray-800 dark:text-gray-200">Spellcheck Underline Highlights</div>
+            <div class="text-gray-500 dark:text-gray-400 text-[11px]">Highlight misspelled words in the editor</div>
+          </div>
+          <input type="checkbox" id="pref-spellcheck" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+        </label>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-5 pt-3 border-t border-gray-100 dark:border-gray-700">
+        <button class="modal-close-btn px-4 py-2 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-xl">Cancel</button>
+        <button id="btn-save-popup-prefs" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Save Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. PWA Install Instruction Modal (Mobile & Desktop) -->
+  <div id="install-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
+        <h3 class="font-bold text-lg text-gray-900 dark:text-white">Install NoteHub Nepal</h3>
+        <button class="modal-close-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-4 text-xs text-gray-600 dark:text-gray-300">
+        <div id="install-native-prompt" class="space-y-3">
+          <p>Install NoteHub as a native desktop or mobile application for instant offline access and full screen experience.</p>
+          <button id="btn-trigger-pwa-install" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2">
+            <span>Install Now (अहिले इन्स्टल गर्नुहोस्)</span>
+          </button>
+        </div>
+
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-2">
+          <p class="font-bold text-gray-800 dark:text-gray-200">Mobile &amp; Browser Instructions:</p>
+          <ul class="list-disc pl-5 space-y-1.5 text-gray-500 dark:text-gray-400">
+            <li><b>Android (Chrome):</b> Tap the 3 dots <b>⋮</b> &rarr; Select <b>"Install app"</b> or <b>"Add to Home screen"</b>.</li>
+            <li><b>iPhone / iPad (Safari):</b> Tap Share <b>⎋</b> &rarr; Select <b>"Add to Home Screen"</b>.</li>
+            <li><b>Desktop (Chrome/Edge/Brave):</b> Click the install icon <b>⊕</b> in your browser address bar.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-4 pt-2 border-t border-gray-100 dark:border-gray-700">
+        <button class="modal-close-btn px-4 py-2 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-xl">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Create / Manage Folder Modal -->
+  <div id="folder-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700 mb-4">
+        <h3 class="font-bold text-base text-gray-900 dark:text-white">New Folder (नयाँ फोल्डर)</h3>
+        <button class="modal-close-btn text-gray-400 text-lg">✕</button>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Folder Name (फोल्डरको नाम):</label>
+          <input type="text" id="new-folder-name-input" placeholder="e.g. Work, Personal, नेपाली साहित्य..." class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-xs focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="flex justify-end gap-2 pt-3">
+          <button class="modal-close-btn px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 rounded-lg">Cancel</button>
+          <button id="btn-save-folder" class="px-4 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm">Save Folder</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Interactive Date Converter Modal (AD <-> BS) -->
+  <div id="converter-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
+        <div>
+          <h3 class="font-bold text-lg text-gray-900 dark:text-white">Nepali &amp; English Date Converter</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">विक्रम संवत् (BS) ⇄ ईस्वी संवत् (AD) मिति परिवर्तन</p>
+        </div>
+        <button class="modal-close-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">✕</button>
+      </div>
+
+      <!-- Mode Tabs -->
+      <div class="flex gap-2 mt-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+        <button id="tab-ad-to-bs" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg bg-indigo-600 text-white transition-colors">
+          AD to BS (ईस्वी ➔ वि.सं.)
+        </button>
+        <button id="tab-bs-to-ad" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors">
+          BS to AD (वि.सं. ➔ ईस्वी)
+        </button>
+      </div>
+
+      <!-- Panel 1: AD to BS -->
+      <div id="panel-ad-to-bs" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Select Gregorian (AD) Date:</label>
+          <input type="date" id="conv-ad-input" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-sm focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div class="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 space-y-2">
+          <div class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">Converted Nepali BS Date:</div>
+          <div id="conv-bs-result-nepali" class="text-lg font-bold text-gray-900 dark:text-white font-nepali">--</div>
+          <div id="conv-bs-result-english" class="text-xs text-gray-600 dark:text-gray-300 font-medium">--</div>
+        </div>
+      </div>
+
+      <!-- Panel 2: BS to AD -->
+      <div id="panel-bs-to-ad" class="mt-4 space-y-4 hidden">
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Year (वर्ष BS):</label>
+            <select id="conv-bs-year-select" class="w-full px-2 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-xs focus:ring-2 focus:ring-indigo-500">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Month (महिना):</label>
+            <select id="conv-bs-month-select" class="w-full px-2 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-xs focus:ring-2 focus:ring-indigo-500">
+              <option value="1">1. वैशाख (Baisakh)</option>
+              <option value="2">2. जेठ (Jestha)</option>
+              <option value="3">3. असार (Ashadh)</option>
+              <option value="4">4. श्रावण (Shrawan)</option>
+              <option value="5">5. भदौ (Bhadra)</option>
+              <option value="6">6. असोज (Ashwin)</option>
+              <option value="7">7. कार्तिक (Kartik)</option>
+              <option value="8">8. मंसिर (Mangsir)</option>
+              <option value="9">9. पुष (Poush)</option>
+              <option value="10">10. माघ (Magh)</option>
+              <option value="11">11. फागुन (Falgun)</option>
+              <option value="12">12. चैत (Chaitra)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Day (गते):</label>
+            <select id="conv-bs-day-select" class="w-full px-2 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-xs focus:ring-2 focus:ring-indigo-500">
+              <!-- Populated dynamically 1-32 -->
+            </select>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 space-y-2">
+          <div class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wider">Converted Gregorian (AD) Date:</div>
+          <div id="conv-ad-result-full" class="text-lg font-bold text-gray-900 dark:text-white">--</div>
+          <div id="conv-ad-result-dual" class="text-xs text-gray-600 dark:text-gray-300 font-nepali">--</div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between mt-6 pt-3 border-t border-gray-100 dark:border-gray-700">
+        <button id="btn-insert-converted-date" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-1.5 shadow-sm">
+          <span>Insert Date into Note</span>
+        </button>
+        <button class="modal-close-btn px-4 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Sync Room Code & Bluetooth Modal -->
+  <div id="sync-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
+        <div>
+          <h3 class="font-bold text-lg text-gray-900 dark:text-white">Realtime &amp; Offline Sync</h3>
+          <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">Always-On Background Sync Active</p>
+        </div>
+        <button class="modal-close-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-4 text-xs">
+        
+        <!-- Room Code & PIN Lock Sync -->
+        <div class="space-y-2">
+          <label class="block font-semibold text-gray-700 dark:text-gray-300">Room / Sync Code (ID):</label>
+          <input type="text" id="sync-code-input" value="alok" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 font-mono text-sm font-semibold focus:ring-2 focus:ring-indigo-500 uppercase tracking-wide">
+          
+          <label class="block font-semibold text-gray-700 dark:text-gray-300 mt-2">Security PIN (गोप्य पिन):</label>
+          <div class="flex gap-2">
+            <input type="password" id="sync-pin-input" value="8264" maxlength="8" class="flex-1 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 font-mono text-sm font-semibold focus:ring-2 focus:ring-indigo-500 tracking-widest text-center" placeholder="Enter PIN">
+            <button id="btn-save-sync-code" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-xs flex-shrink-0">
+              Connect Room
+            </button>
+          </div>
+          <p class="text-gray-500 dark:text-gray-400 text-[11px]">
+            Protected with Private PIN. No unauthorized device can create or overwrite this room without the correct PIN.
+          </p>
+        </div>
+
+        <div class="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-2">
+          <label class="block font-bold text-gray-800 dark:text-gray-200">Bluetooth &amp; Offline Direct Connection:</label>
+          <p class="text-gray-500 dark:text-gray-400 text-[11px]">
+            Sync directly with nearby devices over Bluetooth or local hotspot without internet.
+          </p>
+          <button id="btn-connect-bluetooth" class="w-full py-2.5 px-3 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/80 text-sky-800 dark:text-sky-300 font-semibold flex items-center justify-center gap-2 border border-sky-200 dark:border-sky-800/60 transition-colors">
+            <span>Connect via Bluetooth / Nearby Device</span>
+          </button>
+          <p id="bluetooth-status-msg" class="text-[11px] text-gray-500 dark:text-gray-400 italic hidden"></p>
+        </div>
+
+        <div class="bg-amber-50 dark:bg-amber-950/40 p-3 rounded-xl border border-amber-200 dark:border-amber-800/50 text-[11px] text-amber-800 dark:text-amber-300 space-y-1">
+          <div class="font-bold">Room Lock &amp; PIN Security:</div>
+          <p>• Room code is locked with your private security PIN.</p>
+          <p>• Unauthorized devices attempting to join with a wrong PIN are instantly blocked.</p>
+        </div>
+
+        <div class="flex justify-between items-center gap-2 pt-2">
+          <button id="btn-lock-app-now" class="px-3 py-1.5 text-xs font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 rounded-xl hover:bg-amber-200 transition-colors">
+            Lock App with PIN
+          </button>
+          <button class="modal-close-btn px-4 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. PIN Security Lock Screen Modal -->
+  <div id="pin-lock-modal" class="modal-container fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl max-w-xs w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 mx-auto flex items-center justify-center font-bold text-xl mb-3 shadow-inner">
+        🔒
+      </div>
+      <h3 class="font-bold text-lg text-gray-900 dark:text-white">NoteHub Security Lock</h3>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-4">Enter 4-digit PIN to access NoteHub</p>
+
+      <!-- PIN Display Dots -->
+      <div class="flex justify-center gap-3 mb-6">
+        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600 transition-all" id="pin-dot-0"></div>
+        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600 transition-all" id="pin-dot-1"></div>
+        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600 transition-all" id="pin-dot-2"></div>
+        <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600 transition-all" id="pin-dot-3"></div>
+      </div>
+
+      <!-- Keypad Numbers -->
+      <div class="grid grid-cols-3 gap-2.5 max-w-[200px] mx-auto text-sm font-bold">
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="1">1</button>
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="2">2</button>
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="3">3</button>
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="4">4</button>
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="5">5</button>
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="6">6</button>
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="7">7</button>
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="8">8</button>
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="9">9</button>
+        <button class="pin-num-btn py-3 rounded-2xl text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-all" id="btn-clear-pin">Clear</button>
+        <button class="pin-num-btn py-3 rounded-2xl bg-gray-100 dark:bg-gray-700/80 hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-600 text-gray-800 dark:text-gray-200 transition-all active:scale-95" data-val="0">0</button>
+        <button class="pin-num-btn py-3 rounded-2xl text-xs text-red-500 hover:text-red-700 transition-all" id="btn-backspace-pin">⌫</button>
+      </div>
+
+      <p id="pin-error-msg" class="text-xs text-red-500 font-semibold mt-3 hidden">Incorrect PIN</p>
+    </div>
+  </div>
+
+  <!-- 8. Facebook Caption Formatter & Live Post Preview Modal -->
+  <div id="facebook-caption-modal" class="modal-container fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 md:p-6 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl max-w-4xl w-full p-4 md:p-6 shadow-2xl border border-gray-200 dark:border-gray-700 max-h-[92vh] flex flex-col overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm">f</div>
+          <div>
+            <h3 class="font-bold text-base md:text-lg text-gray-900 dark:text-white">Facebook &amp; Social Caption Formatter</h3>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400">Convert notes into stylish Unicode bold text with live post feed preview</p>
+          </div>
+        </div>
+        <button class="modal-close-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">✕</button>
+      </div>
+
+      <!-- Quick Style Toolbar for Caption -->
+      <div class="py-2.5 px-1 border-b border-gray-100 dark:border-gray-700 flex items-center gap-1.5 overflow-x-auto text-xs select-none">
+        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1">Style:</span>
+        <button id="btn-fb-style-bold-sans" class="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 hover:text-white font-bold transition-colors" title="Apply Sans Bold (𝗔𝗕𝗖)">
+          𝗔 Sans Bold
+        </button>
+        <button id="btn-fb-style-bold-serif" class="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 hover:text-white font-serif font-bold transition-colors" title="Apply Serif Bold (𝐀𝐁𝐂)">
+          𝐀 Serif Bold
+        </button>
+        <button id="btn-fb-style-italic" class="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 hover:text-white italic transition-colors" title="Apply Italic (𝘈𝘉𝘊)">
+          𝘈 Italic
+        </button>
+        <button id="btn-fb-style-script" class="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 hover:text-white transition-colors" title="Apply Cursive Script (𝓐𝓑𝓒)">
+          𝓐 Script
+        </button>
+        <button id="btn-fb-style-mono" class="px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-blue-600 hover:text-white font-mono transition-colors" title="Apply Monospace (𝙰𝙱𝙲)">
+          𝙰 Mono
+        </button>
+
+        <span class="w-[1px] h-4 bg-gray-200 dark:bg-gray-700 mx-1"></span>
+
+        <!-- Quick Inserts -->
+        <button id="btn-fb-add-divider" class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-700 dark:text-gray-300 font-bold" title="Insert Divider Line">
+          ━ Divider
+        </button>
+        <button id="btn-fb-add-bullets" class="px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-700 dark:text-gray-300" title="Insert Stylish Bullet">
+          ✦ Bullet
+        </button>
+        <button id="btn-fb-add-hashtags" class="px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold" title="Add Popular Hashtags">
+          #Hashtags
+        </button>
+      </div>
+
+      <!-- Split Layout: Editor & Realistic Facebook Post Mockup -->
+      <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pt-3">
+        
+        <!-- Left: Editable Caption Textarea -->
+        <div class="flex flex-col h-full space-y-1.5">
+          <div class="flex items-center justify-between text-xs text-gray-500">
+            <span class="font-bold">Editable Caption:</span>
+            <span id="fb-char-count">0 characters • 0 lines</span>
+          </div>
+          <textarea id="fb-caption-input" class="flex-1 w-full min-h-[220px] p-3 rounded-2xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-sm focus:ring-2 focus:ring-blue-500 font-sans text-gray-900 dark:text-gray-100 resize-none leading-relaxed" placeholder="Type or format your Facebook caption here..."></textarea>
+        </div>
+
+        <!-- Right: Realistic Facebook Feed Post Mockup Card -->
+        <div class="flex flex-col h-full space-y-1.5">
+          <div class="flex items-center justify-between text-xs text-gray-500">
+            <span class="font-bold">Live Facebook Post Preview:</span>
+            <span class="text-[11px] text-blue-600 font-semibold">Live Feed View</span>
+          </div>
+
+          <div class="flex-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-4 overflow-y-auto flex flex-col justify-between">
+            <div>
+              <!-- Facebook Post Header -->
+              <div class="flex items-center gap-2.5 mb-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                  A
+                </div>
+                <div>
+                  <div class="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-1">
+                    <span>Alok</span>
+                    <span class="text-blue-500 text-xs">✓</span>
+                  </div>
+                  <div class="text-[11px] text-gray-400 flex items-center gap-1">
+                    <span>Just now</span>
+                    <span>•</span>
+                    <span>🌐 Public</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Caption Content inside Post -->
+              <div id="fb-preview-content" class="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-wrap leading-relaxed">
+                <!-- Injected live -->
+              </div>
+            </div>
+
+            <!-- Facebook Mockup Action Buttons -->
+            <div class="border-t border-gray-100 dark:border-gray-800 mt-4 pt-2 flex items-center justify-around text-xs font-semibold text-gray-500 dark:text-gray-400">
+              <span class="flex items-center gap-1 cursor-default">👍 Like</span>
+              <span class="flex items-center gap-1 cursor-default">💬 Comment</span>
+              <span class="flex items-center gap-1 cursor-default">↗ Share</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer with Save, Edit, Delete and Copy Actions -->
+      <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <!-- Reload Note -->
+          <button id="btn-import-from-current-note" class="px-2.5 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors" title="Reload raw note text">
+            ↺ Reload
+          </button>
+          <!-- Delete / Clear Caption -->
+          <button id="btn-fb-delete-caption" class="px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-colors" title="Clear/Delete Caption text">
+            🗑️ Clear / Delete
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Edit / Apply to Active Note -->
+          <button id="btn-fb-apply-to-editor" class="px-3 py-1.5 text-xs font-semibold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl transition-colors" title="Insert caption into note editor">
+            ✏️ Apply to Note
+          </button>
+          <!-- Save as New Note -->
+          <button id="btn-fb-save-as-new-note" class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition-colors" title="Save as a new note">
+            💾 Save as New Note
+          </button>
+          <!-- Copy for Facebook -->
+          <button id="btn-copy-fb-caption" class="px-4 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md flex items-center gap-1.5 active:scale-95 transition-all">
+            <span>📋 Copy for Facebook</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 9. Reminder & Notification Setup Modal -->
+  <div id="reminder-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
+        <h3 class="font-bold text-lg text-gray-900 dark:text-white">Set Note Reminder</h3>
+        <button class="modal-close-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Reminder Date (AD):</label>
+          <input type="date" id="reminder-date-input" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-sm focus:ring-2 focus:ring-indigo-500">
+          <p id="reminder-bs-preview" class="text-xs text-indigo-600 dark:text-indigo-400 mt-1 font-nepali font-semibold">BS Date: --</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Reminder Time:</label>
+          <input type="time" id="reminder-time-input" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-sm focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div class="bg-indigo-50 dark:bg-indigo-950/40 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800/50 text-xs text-indigo-800 dark:text-indigo-300">
+          When the reminder fires, you'll receive a popup alert modal, audio chime sound, and a browser push notification even when working offline.
+        </div>
+
+        <div class="flex justify-between items-center pt-2">
+          <button id="btn-clear-reminder" class="px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl">Remove Reminder</button>
+          <div class="flex gap-2">
+            <button class="modal-close-btn px-4 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">Cancel</button>
+            <button id="btn-save-reminder" class="px-4 py-2 text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm">Save Reminder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Rename Note Modal -->
+  <div id="rename-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <h3 class="font-bold text-base text-gray-900 dark:text-white mb-3">Rename Note</h3>
+      <input type="text" id="rename-title-input" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-sm focus:ring-2 focus:ring-indigo-500 mb-4">
+      <div class="flex justify-end gap-2">
+        <button class="modal-close-btn px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 rounded-lg">Cancel</button>
+        <button id="btn-save-rename" class="px-3 py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. Full Backup / Export Modal -->
+  <div id="export-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700 mb-4">
+        <h3 class="font-bold text-base text-gray-900 dark:text-white">Export &amp; Backup Options</h3>
+        <button class="modal-close-btn text-gray-400 text-lg">✕</button>
+      </div>
+      <div class="space-y-2 text-xs">
+        <button class="export-format-btn w-full py-2.5 px-3 rounded-xl bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-left flex items-center gap-2" data-format="txt">
+          <span>Download Plain Text (.txt)</span>
+        </button>
+        <button class="export-format-btn w-full py-2.5 px-3 rounded-xl bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-left flex items-center gap-2" data-format="md">
+          <span>Download Markdown (.md)</span>
+        </button>
+        <button class="export-format-btn w-full py-2.5 px-3 rounded-xl bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-left flex items-center gap-2" data-format="mb">
+          <span>Download NoteHub Multi-Block (.mb)</span>
+        </button>
+        <button class="export-format-btn w-full py-2.5 px-3 rounded-xl bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-left flex items-center gap-2" data-format="html">
+          <span>Download HTML Webpage (.html)</span>
+        </button>
+        <button class="export-format-btn w-full py-2.5 px-3 rounded-xl bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-left flex items-center gap-2" data-format="doc">
+          <span>Download Word Document (.doc)</span>
+        </button>
+        <button class="export-format-btn w-full py-2.5 px-3 rounded-xl bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-left flex items-center gap-2" data-format="pdf">
+          <span>Export PDF Document (.pdf)</span>
+        </button>
+        <button class="export-format-btn w-full py-2.5 px-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/80 font-semibold text-indigo-700 dark:text-indigo-300 text-left flex items-center gap-2" data-format="json">
+          <span>Full JSON Backup (All Folders &amp; Notes)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. GitHub Auto-Sync & Cloud Repository Modal -->
+  <div id="github-sync-modal" class="modal-container fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
+        <div class="flex items-center gap-2">
+          <svg class="w-6 h-6 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          <div>
+            <h3 class="font-bold text-base md:text-lg text-gray-900 dark:text-white">GitHub Cloud Auto-Backup</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Push notes and backups directly to your GitHub repo</p>
+          </div>
+        </div>
+        <button class="modal-close-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">GitHub Personal Access Token (PAT):</label>
+          <input type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 font-mono focus:ring-2 focus:ring-indigo-500">
+          <p class="text-[10px] text-gray-400 mt-1">Requires 'repo' scope token from github.com/settings/tokens</p>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Repository Name (username/repo):</label>
+          <input type="text" id="gh-repo-input" placeholder="alokpoddarbaishya/notepad-backup" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 font-mono focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Branch:</label>
+          <input type="text" id="gh-branch-input" value="main" class="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 font-mono focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <label class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 cursor-pointer">
+          <div>
+            <div class="font-bold text-gray-800 dark:text-gray-200">Enable Automatic GitHub Sync</div>
+            <div class="text-gray-500 dark:text-gray-400 text-[11px]">Auto-commit on save and export</div>
+          </div>
+          <input type="checkbox" id="gh-enable-toggle" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between mt-5 pt-3 border-t border-gray-100 dark:border-gray-700">
+        <button id="btn-gh-push-now" class="px-3 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs flex items-center gap-1">
+          <span>🚀 Push &amp; Sync Now</span>
+        </button>
+        <div class="flex gap-2">
+          <button class="modal-close-btn px-4 py-2 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-xl">Close</button>
+          <button id="btn-save-gh-settings" class="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/nepali-calendar.js"></script>
+  <script src="js/nepali-transliterate.js"></script>
+  <script src="js/dictionary.js"></script>
+  <script src="js/caption-formatter.js"></script>
+  <script src="js/github-sync.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/reminder.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
