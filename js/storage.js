@@ -298,7 +298,7 @@ const NoteStorage = (() => {
 
     if (permanent) {
       if (db) {
-        return new Promise((resolve) => {
+        await new Promise((resolve) => {
           const tx = db.transaction(STORE_NAME, 'readwrite');
           const store = tx.objectStore(STORE_NAME);
           const req = store.delete(id);
@@ -334,10 +334,22 @@ const NoteStorage = (() => {
 
   // Empty Trash
   async function emptyTrash() {
+    await initDB();
     const trashNotes = await getAllNotes({ onlyTrash: true });
-    for (const note of trashNotes) {
-      await deleteNote(note.id, true);
+
+    if (db && trashNotes.length > 0) {
+      await new Promise((resolve) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        trashNotes.forEach(n => store.delete(n.id));
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      });
     }
+
+    let notes = getLocalStorageNotes();
+    notes = notes.filter(n => !n.isTrash);
+    saveLocalStorageNotes(notes);
     return true;
   }
 

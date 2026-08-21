@@ -804,6 +804,25 @@ const App = (() => {
       return;
     }
 
+    // Prominent Empty Trash Action Header when viewing Trash
+    if (activeFilter === 'trash') {
+      const trashHeader = document.createElement('div');
+      trashHeader.className = 'mb-3 p-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex items-center justify-between gap-2 shadow-xs';
+      trashHeader.innerHTML = `
+        <div class="text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
+          <span>🗑️</span>
+          <span>${notes.length} note(s) in Trash</span>
+        </div>
+        <button id="btn-empty-trash-banner" class="px-2.5 py-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs active:scale-95 transition-all">
+          Empty Trash Now
+        </button>
+      `;
+      trashHeader.querySelector('#btn-empty-trash-banner')?.addEventListener('click', async () => {
+        await handleEmptyTrashAction();
+      });
+      listEl.appendChild(trashHeader);
+    }
+
     notes.forEach(note => {
       const card = document.createElement('div');
       const isActive = note.id === currentNoteId;
@@ -998,6 +1017,29 @@ const App = (() => {
 
     if (showFeedback) {
       showToast('Note saved successfully! 💾✓');
+    }
+  }
+
+  // Centralized Empty Trash Action
+  async function handleEmptyTrashAction() {
+    const trashNotes = await NoteStorage.getAllNotes({ onlyTrash: true });
+    if (trashNotes.length === 0) {
+      showToast('Trash is already empty');
+      return;
+    }
+
+    if (confirm(`Permanently empty ${trashNotes.length} note(s) in Trash? This action cannot be undone.`)) {
+      for (const tn of trashNotes) {
+        NoteSync.broadcastNoteDelete(tn.id, true);
+      }
+      await NoteStorage.emptyTrash();
+      if (activeFilter === 'trash') {
+        currentNoteId = null;
+        NoteEditor.setTitle('');
+        NoteEditor.setContent('');
+      }
+      await refreshNotesList();
+      showToast('Trash permanently emptied! 🗑️');
     }
   }
 
@@ -1329,24 +1371,7 @@ const App = (() => {
 
     // Empty Trash Button
     document.getElementById('btn-empty-trash')?.addEventListener('click', async () => {
-      const trashNotes = await NoteStorage.getAllNotes({ onlyTrash: true });
-      if (trashNotes.length === 0) {
-        showToast('Trash is already empty');
-        return;
-      }
-      if (confirm(`Permanently empty ${trashNotes.length} note(s) in Trash? This cannot be undone.`)) {
-        for (const tn of trashNotes) {
-          NoteSync.broadcastNoteDelete(tn.id, true);
-        }
-        await NoteStorage.emptyTrash();
-        if (activeFilter === 'trash') {
-          currentNoteId = null;
-          NoteEditor.setTitle('');
-          NoteEditor.setContent('');
-        }
-        await refreshNotesList();
-        showToast('Trash permanently emptied 🗑️');
-      }
+      await handleEmptyTrashAction();
     });
 
     // Nepali Typing Mode Toggle
