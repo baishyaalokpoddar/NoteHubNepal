@@ -7,13 +7,13 @@
 const NoteAdmin = (() => {
   const ROOMS_REGISTRY_KEY = 'nhub_known_rooms';
   const ROOMS_METADATA_KEY = 'nhub_rooms_metadata';
-  const ADMIN_USER = 'alok';
-  const ADMIN_PASSWORD = 'FNXWS#Eq3D&$eG';
+  const ADMIN_USER = 'Alok';
+  const ADMIN_PASSWORD = '9824074223';
 
   function authenticate(username, password) {
     const cleanUser = (username || '').trim().toLowerCase();
     const cleanPass = (password || '').trim();
-    return cleanUser === ADMIN_USER && cleanPass === ADMIN_PASSWORD;
+    return cleanUser === 'alok' && cleanPass === ADMIN_PASSWORD;
   }
 
   function getKnownRooms() {
