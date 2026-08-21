@@ -274,13 +274,26 @@ html, body {
   overflow: hidden;
   overscroll-behavior-y: none;
   -webkit-touch-callout: none;
-  touch-action: manipulation;
+  touch-action: pan-y pinch-zoom;
+  text-rendering: optimizeLegibility;
 }
 
 header {
   padding-top: max(0.5rem, var(--sat));
   padding-left: max(0.75rem, var(--sal));
   padding-right: max(0.75rem, var(--sar));
+}
+
+/* GPU Accelerated Smooth Transitions */
+button, .tool-btn, .suggestion-pill, .note-card, .filter-btn, .folder-item {
+  -webkit-tap-highlight-color: transparent;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+button:active, .tool-btn:active {
+  transform: scale(0.96) translateZ(0);
+  transition: transform 0.08s ease;
 }
 
 /* Hide scrollbar for toolbar on iOS while keeping it scrollable */
@@ -295,7 +308,7 @@ header {
 /* Mobile Bottom Bar Safe Area for iPhone XR */
 @media (max-width: 768px) {
   #main-container {
-    height: calc(100dvh - 60px);
+    height: calc(100dvh - 58px);
   }
 
   /* Safe padding for bottom home indicator bar on iPhone XR */
@@ -309,15 +322,22 @@ header {
     padding-top: max(0.5rem, var(--sat));
     padding-bottom: max(1rem, var(--sab));
     max-height: 100dvh;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
   }
 
   #note-editor {
-    min-height: calc(100dvh - 280px);
+    min-height: calc(100dvh - 260px);
     font-size: 1.05rem;
-    line-height: 1.65;
-    padding-bottom: max(5rem, calc(var(--sab) + 4rem));
+    line-height: 1.7;
+    padding: 1rem 1rem max(5rem, calc(var(--sab) + 4rem)) 1rem;
     -webkit-overflow-scrolling: touch;
+    outline: none;
   }
+
+  .note-card {
+    border-radius: 1rem !important;
+  }
+}
 
   .modal-container > div {
     max-height: calc(100dvh - 3rem);

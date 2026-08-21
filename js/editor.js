@@ -13,6 +13,9 @@ const NoteEditor = (() => {
   let lastSelectionText = '';
   let onContentChangeCallback = null;
   let currentWordRange = null;
+  let suggestionDebounceTimer = null;
+  let statsDebounceTimer = null;
+  let scrollThrottleTimer = null;
 
   function init(options = {}) {
     editorEl = document.getElementById('note-editor');
@@ -36,8 +39,8 @@ const NoteEditor = (() => {
       if (onContentChangeCallback) {
         onContentChangeCallback();
       }
-      updateStats();
-      triggerAutoSuggestions();
+      debouncedUpdateStats();
+      debouncedTriggerAutoSuggestions();
     });
 
     titleEl.addEventListener('input', (e) => {
@@ -126,6 +129,22 @@ const NoteEditor = (() => {
         if (suggestionBarEl) suggestionBarEl.classList.add('hidden');
       }
     });
+  }
+
+  function debouncedTriggerAutoSuggestions() {
+    if (suggestionDebounceTimer) clearTimeout(suggestionDebounceTimer);
+    suggestionDebounceTimer = setTimeout(() => {
+      requestAnimationFrame(() => {
+        triggerAutoSuggestions();
+      });
+    }, 200);
+  }
+
+  function debouncedUpdateStats() {
+    if (statsDebounceTimer) clearTimeout(statsDebounceTimer);
+    statsDebounceTimer = setTimeout(() => {
+      updateStats();
+    }, 350);
   }
 
   function triggerAutoSuggestions() {
@@ -434,15 +453,21 @@ const NoteEditor = (() => {
   }
 
   function scrollCursorIntoView() {
-    const sel = window.getSelection();
-    if (!sel || !sel.rangeCount) return;
-    const range = sel.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    if (rect.top > 0 && rect.bottom > 0) {
-      if (rect.bottom > (window.innerHeight - 150) || rect.top < 100) {
-        range.startContainer.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
+    if (scrollThrottleTimer) return;
+    scrollThrottleTimer = setTimeout(() => {
+      scrollThrottleTimer = null;
+      requestAnimationFrame(() => {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        if (rect.top > 0 && rect.bottom > 0) {
+          if (rect.bottom > (window.innerHeight - 150) || rect.top < 90) {
+            range.startContainer.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
+      });
+    }, 250);
   }
 
   function insertImageFromFile(file) {
